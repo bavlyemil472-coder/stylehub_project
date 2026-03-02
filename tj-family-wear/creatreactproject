@@ -1,0 +1,7 @@
+npm create vite@latest tj-family-wear -- --template react
+cd tj-family-wear
+npm install
+npm run dev
+rd /s /q node_modules
+package-lock.json
+npm cache clean --force

@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+
+@theme {
+  --color-brand-gold: #D4AF37;
+  --color-brand-dark: #1A1A1A;
+  --color-brand-gray: #F5F5F5;
+
+}
+body {
+  font-family: 'Montserrat', sans-serif;
+  @apply bg-white text-brand-dark;
+}
+
+.font-display {
+  font-family: 'Playfair Display', serif;
+}
