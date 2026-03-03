@@ -5,7 +5,7 @@ import { Facebook, Instagram, Phone } from 'lucide-react';
 const Footer = () => {
   // روابط السوشيال ميديا
   const socialLinks = {
-    instagram: "https://www.instagram.com/your_account",
+    
     facebook: "https://www.facebook.com/your_page",
     whatsapp: "https://wa.me/201234567890" // اكتب رقمك بعد الـ 20
   };
@@ -16,7 +16,7 @@ const Footer = () => {
         
         {/* البلوك الأول: من نحن */}
         <div className="space-y-6 text-center md:text-right">
-          <h2 className="text-2xl font-bold italic text-brand-gold tracking-tighter">TRI JOLIE.</h2>
+          <h2 className="text-2xl font-bold italic text-brand-gold tracking-tighter">TRES JOLIE</h2>
           <p className="text-gray-500 text-[10px] uppercase tracking-[0.2em] leading-relaxed">
             الجودة ليست مجرد فعل، بل هي عادة نغزلها في كل قطعة.
           </p>
@@ -34,9 +34,7 @@ const Footer = () => {
         <div className="flex flex-col items-center md:items-left gap-6">
           <h3 className="text-brand-gold text-[11px] font-black uppercase tracking-widest mb-2">تواصل معنا</h3>
           <div className="flex gap-6">
-            <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-brand-gold transition-all">
-              <Instagram size={20} />
-            </a>
+            
             <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-brand-gold transition-all">
               <Facebook size={20} />
             </a>
