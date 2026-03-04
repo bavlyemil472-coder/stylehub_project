@@ -10,24 +10,24 @@ import {
   X, 
   Search,
   ChevronDown,
-  LayoutDashboard // الأيقونة الجديدة
+  LayoutDashboard 
 } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false); // الحالة الجديدة للأدمن
+  const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
 
   const checkStatusAndCart = async () => {
     const token = localStorage.getItem('access_token');
-    const isStaff = localStorage.getItem('is_staff') === 'true'; // التأكد من صلاحية الأدمن
+    const isStaff = localStorage.getItem('is_staff') === 'true'; 
     
     setIsLoggedIn(!!token);
-    setIsAdmin(isStaff); // تحديث حالة الأدمن
+    setIsAdmin(isStaff);   
 
     if (token) {
       try {
@@ -197,7 +197,7 @@ const Navbar = () => {
               Collections <ChevronDown className="w-3 h-3 -rotate-90 text-brand-gold/30" />
             </Link>
 
-            {/* زرار الأدمن في الموبايل */}
+            
             {isAdmin && (
               <Link 
                 to="/admin-dashboard" 
