@@ -13,11 +13,9 @@ const Profile = () => {
         username: ''
     });
 
-    // 1. جلب البيانات عند تحميل الصفحة
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                // التعديل: إضافة / في البداية لضمان المسار الصحيح
                 const res = await api.get('/accounts/profile/');
                 setFormData({
                     first_name: res.data.first_name || '',
@@ -35,12 +33,10 @@ const Profile = () => {
         fetchProfile();
     }, []);
 
-    // 2. دالة حفظ التعديلات
     const handleUpdate = async (e) => {
         e.preventDefault();
         setIsSaving(true);
         try {
-            // التعديل: إضافة / واستخدام البيانات المحدثة
             await api.patch('/accounts/profile/', {
                 first_name: formData.first_name,
                 last_name: formData.last_name,
@@ -79,7 +75,6 @@ const Profile = () => {
                 </header>
 
                 <div className="bg-brand-gray/20 rounded-[3rem] p-10 md:p-14 border border-brand-gray relative overflow-hidden shadow-sm">
-                    {/* خلفية جمالية بسيطة */}
                     <div className="absolute top-0 right-0 p-8 opacity-[0.03]">
                         <UserCircle className="w-40 h-40" />
                     </div>
