@@ -78,7 +78,6 @@ const MyOrders = () => {
                             <div key={order.id} className="group">
                                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 pb-8 border-b border-gray-100 group-hover:border-brand-gold/30 transition-all duration-500">
                                     
-                                    {/* ID & Status */}
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-4">
                                             <h3 className="text-xl font-bold text-brand-dark font-display italic tracking-tight">#{order.id}</h3>

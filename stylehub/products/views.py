@@ -1,7 +1,8 @@
 from rest_framework import generics
 from .models import product, category, Review
 from .serializers import ProductSerializer, CategorySerializer, ReviewSerializer
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.viewsets import ModelViewSet
 from .permissions import IsAdminOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -19,7 +20,7 @@ class ProductListCreateView(generics.ListCreateAPIView):
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = product.objects.all().prefetch_related('p_images', 'variants')
     serializer_class = ProductSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [AllowAny]
 
 class AddReviewView(APIView):
     permission_classes = [IsAuthenticated] 

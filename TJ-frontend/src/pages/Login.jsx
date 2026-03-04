@@ -3,6 +3,7 @@ import { Lock, User, LogIn } from 'lucide-react';
 import api from '../services/api';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,6 +14,29 @@ const Login = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const loadingToast = toast.loading('جاري التحقق من حساب جوجل...');
+    try {
+      const response = await api.post('social/google/', {
+        auth_token: credentialResponse.credential
+      });
+
+      localStorage.setItem('access_token', response.data.access);
+      localStorage.setItem('refresh_token', response.data.refresh);
+      
+      toast.dismiss(loadingToast);
+      toast.success("تم الدخول بواسطة جوجل بنجاح ✨");
+      
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error("حدث خطأ أثناء تسجيل الدخول بجوجل");
+      console.error(error);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -58,7 +82,6 @@ const Login = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">اسم المستخدم</label>
             <div className="relative">
@@ -75,11 +98,9 @@ const Login = () => {
             </div>
           </div>
 
-
           <div className="space-y-1">
             <div className="flex justify-between items-center px-4">
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">كلمة السر</label>
-              
               <Link 
                 to="/forgot-password" 
                 className="text-[9px] font-bold text-brand-gold uppercase tracking-tighter hover:text-brand-dark transition-colors"
@@ -87,7 +108,6 @@ const Login = () => {
                 نسيت كلمة السر؟
               </Link>
             </div>
-            
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5" />
               <input
@@ -109,6 +129,27 @@ const Login = () => {
             دخول <LogIn className="w-5 h-5" />
           </button>
         </form>
+
+        <div className="relative my-8">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-100"></div>
+          </div>
+          <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest">
+            <span className="bg-white px-4 text-gray-400">أو سجل عبر</span>
+          </div>
+        </div>
+
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => toast.error("فشل الاتصال بجوجل")}
+            theme="outline"
+            shape="pill"
+            size="large"
+            text="signin_with"
+            locale="ar"
+          />
+        </div>
 
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">

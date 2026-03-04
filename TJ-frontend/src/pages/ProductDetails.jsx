@@ -28,6 +28,14 @@ const ProductDetail = () => {
   }, [id]);
 
   const handleAddToCart = async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      toast.error("يرجى تسجيل الدخول أولاً لإضافة المنتجات للسلة 🛍️");
+      navigate('/login');
+      return;
+    }
+    // ------------------------------------
+
     if (!selectedVariant) {
         toast.error("يرجى اختيار المقاس أولاً");
         return;
@@ -65,6 +73,15 @@ const ProductDetail = () => {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
+
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      toast.error("عذراً، يجب تسجيل الدخول لتتمكن من إضافة تقييمك");
+      navigate('/login');
+      return;
+    }
+    // -------------------------------------------
+
     try {
       await api.post(`/products/${id}/add-review/`, { rating, comment });
       toast.success("تم إضافة تقييمك بنجاح");

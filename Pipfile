@@ -13,6 +13,7 @@ pillow = "*"
 django-rest-passwordreset = "*"
 mysqlclient = "*"
 python-decouple = "*"
+django-allauth = "*"
 
 [dev-packages]
 
