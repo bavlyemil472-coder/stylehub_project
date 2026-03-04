@@ -12,7 +12,6 @@ const MyOrders = () => {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                // التعديل 1: المسار الصحيح لجلب طلبات المستخدم الحالي
                 const response = await api.get('/orders/my/');
                 setOrders(response.data);
             } catch (err) {
@@ -24,7 +23,6 @@ const MyOrders = () => {
         fetchOrders();
     }, []);
 
-    // دالة محسنة لتلوين الحالات بناءً على لغة البراند الفاخرة
     const getStatusStyle = (status) => {
         const s = status.toLowerCase();
         if (s.includes('deliver')) return 'text-emerald-600 bg-emerald-50 border-emerald-100';
@@ -96,7 +94,6 @@ const MyOrders = () => {
                                         </div>
                                     </div>
 
-                                    {/* Amount & Items Preview */}
                                     <div className="flex items-center justify-between w-full md:w-auto md:gap-12">
                                         <div className="text-left md:text-right">
                                             <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mb-1.5 opacity-60">Total Value</p>
@@ -108,13 +105,11 @@ const MyOrders = () => {
                                     </div>
                                 </div>
 
-                                {/* Items Visualization - Styled like a premium receipt */}
                                 <div className="mt-6 flex flex-wrap gap-6 overflow-x-auto pb-2 scrollbar-hide">
                                     {order.items?.map((item, idx) => (
                                         <div key={idx} className="flex items-center gap-4 bg-brand-gray/20 px-4 py-2 rounded-2xl border border-transparent hover:border-brand-gold/10 transition-colors">
                                             <div className="relative">
                                                 <div className="w-10 h-10 bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
-                                                    {/* لو الباك إيند بيرجع صورة للمنتج هنا هتكون أفضل */}
                                                     <Package className="w-full h-full p-2.5 text-gray-200" />
                                                 </div>
                                                 <span className="absolute -top-2 -right-2 w-5 h-5 bg-brand-dark text-white text-[8px] font-black rounded-full flex items-center justify-center shadow-md">
