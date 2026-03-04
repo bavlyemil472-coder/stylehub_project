@@ -15,7 +15,7 @@ const ForgotPassword = () => {
         try {
             await api.post('password_reset/', { email });
             toast.success("إذا كان الإيميل مسجلاً، فستصلك رسالة تحتوي على كود التغيير");
-            // بعد ثواني نوديه لصفحة كتابة الكود الجديد
+
             setTimeout(() => navigate('/reset-password'), 2000);
         } catch (err) {
             toast.error("حدث خطأ، يرجى المحاولة لاحقاً");
