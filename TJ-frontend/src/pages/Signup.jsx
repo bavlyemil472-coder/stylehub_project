@@ -53,7 +53,6 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4 py-12">
       <div className="max-w-md w-full">
-        {/* Header */}
         <div className="text-center mb-10">
           <span className="text-brand-gold font-black uppercase tracking-[0.4em] text-[9px] mb-2 block">Join the Family</span>
           <h2 className="text-4xl font-bold font-display italic text-brand-dark uppercase tracking-tighter">إنشاء حساب</h2>
@@ -62,7 +61,6 @@ const Signup = () => {
         <div className="bg-brand-gray/30 rounded-[2.5rem] p-8 border border-brand-gray shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-5">
             
-            {/* Username */}
             <div className="relative">
               <User className="absolute left-4 top-3.5 text-gray-300 w-4 h-4" />
               <input 
@@ -75,7 +73,6 @@ const Signup = () => {
               />
             </div>
 
-            {/* Name Grid */}
             <div className="grid grid-cols-2 gap-4">
               <input 
                 name="first_name" 
@@ -95,7 +92,6 @@ const Signup = () => {
               />
             </div>
 
-            {/* Email */}
             <div className="relative">
               <Mail className="absolute left-4 top-3.5 text-gray-300 w-4 h-4" />
               <input 
@@ -108,7 +104,6 @@ const Signup = () => {
               />
             </div>
 
-            {/* Passwords */}
             <div className="relative">
               <Lock className="absolute left-4 top-3.5 text-gray-300 w-4 h-4" />
               <input 

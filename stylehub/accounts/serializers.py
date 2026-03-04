@@ -19,7 +19,5 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        # 'first_name' و 'last_name' متاحين تلقائياً من الـ AbstractUser
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role')
-        # الـ username والـ role نخليهم للقراءة فقط عشان العميل ميغيرهمش
         read_only_fields = ('username', 'role')

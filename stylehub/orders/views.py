@@ -146,15 +146,14 @@ def paymob_webhook(request):
 class ShippingRateListView(generics.ListAPIView):
     queryset = ShippingRate.objects.all()
     serializer_class = ShippingRateSerializer
-    permission_classes = [] # السماح للجميع برؤية أسعار الشحن حتى قبل تسجيل الدخول لو 
+    permission_classes = [] 
     
 class AdminDashboardStatsView(APIView):
-    permission_classes = [IsAdminUser] # الأدمين بس اللي يشوف الكلام ده
+    permission_classes = [IsAdminUser] 
 
     
     def get(self, request):
-        # لاحظ هنا: Sum بـ S كبيرة، ومن غير كوتس جوه القوس لو بتقصد الدالة
-        # بس الأصح في دجانغو إننا بنكتبها كدا:
+       
         sales_query = Order.objects.filter(status='delivered').aggregate(total=Sum('total_amount'))
         total_sales = sales_query['total'] or 0
 

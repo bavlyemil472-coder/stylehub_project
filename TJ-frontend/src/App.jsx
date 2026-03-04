@@ -22,11 +22,10 @@ function App() {
   return (
     <Router>
   <div className="flex flex-col min-h-screen bg-white">
-    {/* 1. النبار والتوستر يظهروا في كل الصفحات */}
+
     <Navbar />
     <Toaster position="top-center" reverseOrder={false} />
 
-    {/* 2. المحتوى المتغير (المنطقة اللي بيتبدل فيها الصفحات) */}
     <main className="flex-grow">
       <Routes>
         <Route path="/" element={<Home />} />

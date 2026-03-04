@@ -72,10 +72,10 @@ const Cart = () => {
               <div key={item.id} className="flex gap-8 items-start group relative pb-12 border-b border-gray-50 last:border-0">
                 <div className="w-28 h-40 flex-shrink-0 rounded-[2rem] overflow-hidden bg-brand-gray border border-gray-50 shadow-sm transition-transform duration-700 group-hover:scale-[1.02]">
                   <img 
-                  src={item.image} // تأكد إنها item.image وليس item.product.image
+                  src={item.image} 
                   alt={item.product_name}
                   className="w-full h-full object-cover"
-                  onError={(e) => { e.target.src = 'https://via.placeholder.com/150'; }} // صورة احتياطية لو الرابط باظ
+                  onError={(e) => { e.target.src = 'https://via.placeholder.com/150'; }} 
                 />
                 </div>
 
@@ -123,7 +123,7 @@ const Cart = () => {
                 <div className="pt-8 border-t border-white/10 flex justify-between items-center">
                   <span className="text-white uppercase text-[11px] font-black tracking-[0.3em]">الإجمالي النهائي</span>
                   <div className="text-right">
-                    {/* عرض القيمة النهائية المحسوبة من السيرفر */}
+
                     <span className="text-3xl font-bold text-brand-gold font-display italic tracking-tight">{totalPrice}</span>
                     <span className="text-brand-gold text-xs ml-2 font-display italic">EGP</span>
                   </div>

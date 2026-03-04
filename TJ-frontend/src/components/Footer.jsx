@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Phone } from 'lucide-react';
+import { Facebook,  Phone } from 'lucide-react';
 
 const Footer = () => {
   

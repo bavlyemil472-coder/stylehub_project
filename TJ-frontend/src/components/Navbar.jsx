@@ -78,7 +78,6 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between h-20 items-center">
           
-          {/* 1. Logo Section */}
           <Link to="/" className="flex items-center gap-3 group transition-transform duration-500 hover:scale-105">
             <div className="relative">
               <img 
@@ -94,12 +93,10 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* 2. Desktop Menu */}
           <div className="hidden md:flex items-center space-x-10">
             <Link to="/" className={`text-[10px] font-black uppercase tracking-[0.3em] hover:text-brand-gold transition-all duration-300 ${isActive('/')}`}>Home</Link>
             <Link to="/shop" className={`text-[10px] font-black uppercase tracking-[0.3em] hover:text-brand-gold transition-all duration-300 ${isActive('/shop')}`}>Collections</Link>
             
-            {/* زرار الـ Dashboard للأدمن فقط */}
             {isAdmin && (
               <Link 
                 to="/admin-dashboard" 
@@ -119,7 +116,6 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* 3. Actions & Icons */}
           <div className="hidden md:flex items-center gap-8">
             <form onSubmit={handleSearchSubmit} className="relative group">
               <input 
@@ -161,7 +157,6 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Menu Toggle */}
           <div className="md:hidden flex items-center gap-5">
             <Link to="/cart" className="relative">
               <ShoppingBag className="w-5 h-5 text-white/80" />
@@ -178,7 +173,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Sidebar */}
       <div className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-500 md:hidden ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsOpen(false)}>
         <div 
           className={`absolute right-0 top-0 h-full w-[280px] bg-[#0a0a0a] p-8 space-y-10 shadow-2xl transition-transform duration-500 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
