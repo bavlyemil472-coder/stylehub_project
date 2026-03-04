@@ -30,8 +30,6 @@ urlpatterns = [
     path('api/password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     path('api/token/', TokenObtainPairView.as_view()),
     path('api/token/refresh/', TokenRefreshView.as_view()),
-    # في ملف urls.py الخاص بتطبيق المنتجات
-    # التعديل هنا: إضافة اسم الأب قبل الـ include
     path('api/', include('products.urls')), 
     path('api/', include('cart.urls')),
     path('api/', include('orders.urls')),
