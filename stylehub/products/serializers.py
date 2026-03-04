@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import product, category, ProductVariant, ProductImage, Review
 
-# --- السيرياليزرز المساعدة (خليها زي ما هي) ---
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,14 +18,12 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         model = ProductVariant
         fields = ('id', 'size_name', 'stock')
 
-# --- السيرياليزر الخاص بالألوان التانية (الأخوات) ---
 
 class ColorVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = product
-        fields = ['id', 'color_name', 'color_hex'] # شيلنا الـ slug لو مش بتستخدمه حالياً
+        fields = ['id', 'color_name', 'color_hex'] 
 
-# --- السيرياليزر الأساسي المعدل ---
 class ReviewSerializer(serializers.ModelSerializer):
     user_name = serializers.ReadOnlyField(source='user.username')
 
@@ -43,7 +40,6 @@ class ProductSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
     
-    # الجزء الجديد: جلب الألوان الأخرى في السيرياليزر الرئيسي
     other_colors = serializers.SerializerMethodField()
 
     class Meta:
@@ -63,14 +59,11 @@ class ProductSerializer(serializers.ModelSerializer):
         return obj.reviews.count()
 
     def get_other_colors(self, obj):
-        # منطق جلب الألوان (الأب والإخوة)
         if obj.parent_product:
-            # لو المنتج الحالي "ابن": هات الأب + الإخوة (باقي الأبناء) ماعدا نفسه
             siblings = product.objects.filter(parent_product=obj.parent_product).exclude(id=obj.id)
             parent = product.objects.filter(id=obj.parent_product.id)
             qs = siblings | parent
         else:
-            # لو المنتج الحالي "أب": هات كل أبناءه (color_variants)
             qs = obj.color_variants.all()
             
         return ColorVariantSerializer(qs, many=True).data
