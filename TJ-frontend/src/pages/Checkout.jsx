@@ -7,19 +7,19 @@ import { ShoppingBag, Truck, CreditCard, Wallet, MapPin, User, Phone, ChevronRig
 const Checkout = () => {
     const navigate = useNavigate();
     const [cart, setCart] = useState(null);
-    const [shippingRates, setShippingRates] = useState([]); // قائمة المحافظات من الباك-إيند
-    const [selectedShippingPrice, setSelectedShippingPrice] = useState(0); // سعر شحن المحافظة المختارة
+    const [shippingRates, setShippingRates] = useState([]); 
+    const [selectedShippingPrice, setSelectedShippingPrice] = useState(0); 
     
     const [formData, setFormData] = useState({
         full_name: '',
         phone: '',
         address: '',
-        city: '', // تركناها فارغة ليختار المستخدم
+        city: '', 
         payment_method: 'cash'
     });
 
     useEffect(() => {
-        // 1. جلب بيانات السلة
+        
         api.get('/cart/') 
             .then(res => setCart(res.data))
             .catch(() => {
@@ -27,13 +27,13 @@ const Checkout = () => {
                 navigate('/shop');
             });
 
-        // 2. جلب أسعار الشحن من الـ API الجديد
+        
         api.get('/shipping-rates/')
             .then(res => setShippingRates(res.data))
             .catch(err => console.error("Error fetching shipping rates:", err));
     }, [navigate]);
 
-    // دالة التعامل مع تغيير المحافظة وحساب الشحن
+    
     const handleCityChange = (cityName) => {
         const rate = shippingRates.find(r => r.city_name === cityName);
         setFormData({ ...formData, city: cityName });
@@ -96,7 +96,7 @@ const Checkout = () => {
         <div className="min-h-screen bg-white py-20 px-6">
             <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
                 
-                {/* 1. Shipping Form Section */}
+                
                 <div className="lg:col-span-7">
                     <header className="mb-12">
                         <div className="flex items-center gap-2 mb-2">
@@ -138,7 +138,7 @@ const Checkout = () => {
                             </div>
                         </div>
 
-                        {/* المحافظة بنظام الـ Dropdown */}
+                        
                         <div className="space-y-3">
                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-brand-dark">
                                 <MapPin className="w-3 h-3" /> المحافظة
@@ -195,7 +195,7 @@ const Checkout = () => {
                     </form>
                 </div>
 
-                {/* 2. Order Summary Section */}
+                
                 <div className="lg:col-span-5">
                     <div className="bg-brand-dark rounded-[3rem] p-10 text-white sticky top-24 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] border border-white/5">
                         <h2 className="text-[11px] font-black mb-10 border-b border-white/10 pb-6 uppercase tracking-[0.5em] text-brand-gold flex justify-between items-center">
@@ -243,7 +243,7 @@ const Checkout = () => {
                                 <span className="text-gray-400 font-bold uppercase tracking-[0.2em] text-[11px]">المجموع النهائي</span>
                                 <div className="text-right">
                                     <span className="text-3xl font-bold text-brand-gold font-display italic tracking-tight">
-                                        {/* السعر الإجمالي = سعر السلة + سعر الشحن المختار */}
+                                        
                                         {parseFloat(cart.total_cart_price || 0) + selectedShippingPrice}
                                     </span>
                                     <span className="text-brand-gold text-[10px] ml-2 font-black uppercase">EGP</span>
