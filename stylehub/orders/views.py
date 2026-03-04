@@ -13,7 +13,7 @@ from django.db.models import Sum
 
 from .models import Order, OrderItem , ShippingRate
 from .serializers import OrderSerializer , ShippingRateSerializer
-from cart.models import Cart, CartItem  # تأكد من استيراد Cart هنا
+from cart.models import Cart, CartItem  
 from products.models import ProductVariant, product  
 from .payments import (
     get_auth_token,
