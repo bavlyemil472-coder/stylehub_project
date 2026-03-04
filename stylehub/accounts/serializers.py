@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import User
 
-# كود التسجيل (كما هو)
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -17,7 +16,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
-# --- التعديل الجديد: سيريالايزر لعرض وتعديل البيانات الشخصية ---
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
