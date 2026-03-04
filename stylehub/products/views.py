@@ -12,7 +12,6 @@ class CategoryListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
 
 class ProductListCreateView(generics.ListCreateAPIView):
-    # استخدام prefetch_related لضمان جلب p_images و variants بدون أخطاء
     queryset = product.objects.filter(is_available=True).prefetch_related('p_images', 'variants')
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -23,7 +22,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminOrReadOnly]
 
 class AddReviewView(APIView):
-    permission_classes = [IsAuthenticated] # لازم يكون مسجل دخول
+    permission_classes = [IsAuthenticated] 
 
     def post(self, request, product_id):
         try:

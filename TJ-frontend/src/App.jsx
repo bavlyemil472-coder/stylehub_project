@@ -40,7 +40,7 @@ function App() {
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/order-success" element={<OrderSuccess />} />
         
-        {/* صفحات محمية */}
+        
         <Route 
           path="/checkout" 
           element={<ProtectedRoute><Checkout /></ProtectedRoute>} 
@@ -56,7 +56,7 @@ function App() {
       </Routes>
     </main>
 
-    {/* 3. الفوتر يظهر تحت في كل الصفحات */}
+    
     <Footer />
   </div>
 </Router>

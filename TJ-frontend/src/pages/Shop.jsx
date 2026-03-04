@@ -14,8 +14,7 @@ const Shop = () => {
             const category = params.get('category');
             const search = params.get('search');
             
-            // الإصلاح: استخدام مسار نسبي نظيف
-            // api.js baseURL = http://127.0.0.1:8000/api
+            
             let endpoint = '/products/'; 
             
             const queries = [];
@@ -28,7 +27,6 @@ const Shop = () => {
 
             try {
                 const res = await api.get(finalUrl);
-                // تأكد من أن الـ Backend يرسل المصفوفة مباشرة أو داخل كائن
                 setProducts(Array.isArray(res.data) ? res.data : res.data.results || []);
             } catch (err) {
                 console.error("Shop Fetch Error:", err);
@@ -64,18 +62,15 @@ const Shop = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
                         {products.map(product => (
                             <Link key={product.id} to={`/product/${product.id}`} className="group">
-                                {/* Product Image Container */}
                                 <div className="aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-gray-50 mb-6 shadow-sm group-hover:shadow-2xl transition-all duration-700 relative">
                                     <img 
                                         src={product.image} 
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" 
                                         alt={product.name}
                                     />
-                                    {/* Overlay for hover */}
                                     <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 </div>
 
-                                {/* Product Info */}
                                 <div className="px-2">
                                     <h3 className="font-black text-brand-dark uppercase text-xs mb-2 tracking-wider group-hover:text-brand-gold transition-colors italic">
                                         {product.name}

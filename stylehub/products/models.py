@@ -1,5 +1,5 @@
 from django.db import models
-from django.conf import settings # 1. استيراد الإعدادات
+from django.conf import settings 
 
 
 
@@ -31,17 +31,17 @@ class product(models.Model):
         blank=True, 
         related_name='color_variants'
     )
-    color_name = models.CharField(max_length=50, default="Navy Blue") # مثال: "Navy Blue"
-    color_hex = models.CharField(max_length=7 , default="000080#")   # مثال: "#000080"
+    color_name = models.CharField(max_length=50, default="Navy Blue") 
+    color_hex = models.CharField(max_length=7 , default="000080#")   
     
     def __str__(self):
         return self.name
 
-# --- الجزء المضاف: ميزة تعدد الصور ---
+
 class ProductImage(models.Model):
     product = models.ForeignKey(
         product, 
-        related_name='p_images', # سنستخدم هذا الاسم في السيريالايزر
+        related_name='p_images', 
         on_delete=models.CASCADE
     )
     image = models.ImageField(upload_to='products/gallery/')
@@ -77,7 +77,7 @@ class ProductVariant(models.Model):
 class Review(models.Model):
     product = models.ForeignKey(product, on_delete=models.CASCADE, related_name='reviews')
     
-    # 2. تغيير الإشارة للمستخدم لتكون من الإعدادات
+    
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE
@@ -91,6 +91,5 @@ class Review(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        # لاحظ هنا استخدمنا username، لو الموديل المخصص عندك بيستخدم email كـ identifier
-        # ممكن تغيرها لـ str(self.user)
+        
         return f"{self.user} - {self.product.name} ({self.rating})"

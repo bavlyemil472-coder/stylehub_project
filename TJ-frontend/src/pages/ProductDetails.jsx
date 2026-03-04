@@ -12,7 +12,6 @@ const ProductDetail = () => {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [quantity, setQuantity] = useState(1);
 
-  // حقول جديدة للتعليقات
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
 
@@ -64,13 +63,11 @@ const ProductDetail = () => {
     }
   };
 
-  // وظيفة إرسال التقييم الجديد
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     try {
       await api.post(`/products/${id}/add-review/`, { rating, comment });
       toast.success("تم إضافة تقييمك بنجاح");
-      // تحديث بيانات المنتج لجلب التعليق الجديد
       const res = await api.get(`/products/${id}/`);
       setProduct(res.data);
       setComment('');
@@ -148,7 +145,6 @@ const ProductDetail = () => {
               {product.description}
             </p>
 
-            {/* اختيار الألوان */}
             {product.other_colors && product.other_colors.length > 0 && (
               <div className="mb-10 animate-in fade-in slide-in-from-bottom-2 duration-700">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-dark mb-5 flex items-center gap-2">
@@ -236,11 +232,9 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* --- الجزء الجديد: قسم التقييمات وعرضها --- */}
         <div className="mt-32 border-t border-gray-100 pt-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
             
-            {/* عرض التعليقات السابقة */}
             <div className="lg:col-span-7">
               <h3 className="text-2xl font-bold text-brand-dark italic font-display uppercase tracking-tighter mb-12">آراء العملاء</h3>
               <div className="space-y-8">
@@ -267,7 +261,6 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* فورم إضافة تقييم جديد */}
             <div className="lg:col-span-5">
               <div className="bg-brand-dark rounded-[3rem] p-10 text-white sticky top-24">
                 <h4 className="text-[11px] font-black uppercase tracking-[0.3em] mb-8 text-brand-gold">شاركنا تجربتك</h4>
@@ -306,7 +299,6 @@ const ProductDetail = () => {
             
           </div>
         </div>
-        {/* --- نهاية الجزء الجديد --- */}
 
       </div>
     </div>

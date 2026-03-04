@@ -58,7 +58,7 @@ const Login = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* اسم المستخدم */}
+
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-4">اسم المستخدم</label>
             <div className="relative">
@@ -75,12 +75,11 @@ const Login = () => {
             </div>
           </div>
 
-          {/* كلمة السر */}
+
           <div className="space-y-1">
             <div className="flex justify-between items-center px-4">
               <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">كلمة السر</label>
               
-              {/* رابط نسيت كلمة السر المضاف */}
               <Link 
                 to="/forgot-password" 
                 className="text-[9px] font-bold text-brand-gold uppercase tracking-tighter hover:text-brand-dark transition-colors"
@@ -103,7 +102,6 @@ const Login = () => {
             </div>
           </div>
 
-          {/* زر الدخول */}
           <button
             type="submit"
             className="w-full bg-brand-dark text-brand-gold py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl active:scale-95 mt-8"

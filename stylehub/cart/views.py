@@ -10,7 +10,6 @@ from .models import Cart, CartItem
 from .serializers import CartSerializer
 from products.models import ProductVariant
 
-# وظيفة تنظيف السلال المنتهية
 def cleanup_expired_carts():
     expiry_threshold = timezone.now() - timedelta(minutes=60)
     expired_items = CartItem.objects.filter(cart__updated_at__lt=expiry_threshold)
@@ -20,7 +19,7 @@ class CartDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        cleanup_expired_carts()  # تنظيف آلي
+        cleanup_expired_carts()  
         cart, created = Cart.objects.get_or_create(user=request.user)
         serializer = CartSerializer(cart, context={'request': request})
         return Response(serializer.data)
@@ -29,7 +28,7 @@ class AddToCartView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        cleanup_expired_carts()  # تنظيف آلي
+        cleanup_expired_carts()  
         variant_id = request.data.get('variant_id')
         quantity = int(request.data.get('quantity', 1))
 
@@ -63,7 +62,7 @@ class AddToCartView(APIView):
             )
 
         cart_item.save()
-        cart_item.cart.save() # لتحديث updated_at
+        cart_item.cart.save() 
         
         return Response(
             {'message': 'Product added to cart successfully.'},
@@ -74,7 +73,7 @@ class UpdateCartItemView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request, item_id):
-        cleanup_expired_carts()  # تنظيف آلي
+        cleanup_expired_carts()  
         quantity = int(request.data.get('quantity', 0))
 
         if quantity <= 0:
@@ -97,7 +96,7 @@ class UpdateCartItemView(APIView):
 
         cart_item.quantity = quantity
         cart_item.save()
-        cart_item.cart.save() # لتحديث updated_at
+        cart_item.cart.save() 
 
         return Response(
             {'message': 'Cart item updated successfully.'},

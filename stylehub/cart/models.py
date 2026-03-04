@@ -38,7 +38,6 @@ from django.dispatch import receiver
 
 @receiver(post_delete, sender=CartItem)
 def auto_restore_stock(sender, instance, **kwargs):
-    # أول ما عنصر يتمسح من السلة، نرجع الكمية للمخزون
     variant = instance.variant
     variant.stock += instance.quantity
     variant.save()

@@ -14,9 +14,9 @@ const Cart = () => {
   const fetchCart = async () => {
     try {
       const response = await api.get('/cart/');
-      // التعديل هنا: التأكد من قراءة الحقل الصحيح للإجمالي من السيرفر
+       
       setItems(response.data.items || []);
-      // استخدم total_cart_price كما عرفناه في السيريالايزر الأخير
+         
       setTotalPrice(response.data.total_cart_price || 0);
     } catch (error) {
       console.error("Cart Fetch Error:", error);
@@ -56,7 +56,7 @@ const Cart = () => {
     }
   };
 
-  // ... (كود الـ Loading والـ Empty Cart يظل كما هو)
+  
 
   return (
     <div className="min-h-screen bg-white py-24 px-6">
@@ -97,7 +97,7 @@ const Cart = () => {
                       <span className="w-10 text-center text-xs font-black">{item.quantity}</span>
                       <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white"><Plus className="w-3 h-3" /></button>
                     </div>
-                    {/* التعديل: التأكد من عرض total_price الخاص بكل عنصر بشكل صحيح */}
+                    
                     <div className="text-right">
                        <p className="text-xl font-bold text-brand-dark font-display italic tracking-tight">{item.total_price} <span className="text-[10px] not-italic ml-1">EGP</span></p>
                     </div>

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
-    const [orders, setOrders] = useState([]); // لستة الطلبات
+    const [orders, setOrders] = useState([]);  
     const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
@@ -15,7 +15,7 @@ const AdminDashboard = () => {
             
             const [statsRes, ordersRes] = await Promise.all([
                 api.get('/admin-stats/', config),
-                api.get('/admin/orders/', config) // الـ API الجديد
+                api.get('/admin/orders/', config) 
             ]);
 
             setStats(statsRes.data);
@@ -32,7 +32,7 @@ const AdminDashboard = () => {
     const handleStatusChange = async (orderId, newStatus) => {
         try {
             await api.patch(`/admin/orders/${orderId}/`, { status: newStatus });
-            fetchData(); // تحديث الأرقام والجدول فوراً
+            fetchData(); 
         } catch (err) {
             alert("فشل تحديث الحالة");
         }
@@ -49,7 +49,7 @@ const AdminDashboard = () => {
     return (
         <div className="min-h-screen bg-brand-dark py-20 px-6 lg:px-12 text-white">
             <div className="max-w-7xl mx-auto">
-                {/* Header - نفس الكود بتاعك */}
+                
                 <header className="flex justify-between items-center mb-16">
                     <div>
                         <h1 className="text-4xl font-bold font-display italic tracking-tight uppercase">
@@ -62,14 +62,14 @@ const AdminDashboard = () => {
                     </Link>
                 </header>
 
-                {/* Stats Grid - نفس الكود بتاعك */}
+                
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                     <StatCard title="إجمالي المبيعات" value={`${stats.total_sales.toLocaleString()} EGP`} icon={<DollarSign className="w-6 h-6" />} trend="+12%" color="text-emerald-400" />
                     <StatCard title="عدد الطلبات" value={stats.total_orders} icon={<ShoppingBag className="w-6 h-6" />} trend="New" color="text-blue-400" />
                     <StatCard title="طلبات قيد الانتظار" value={stats.pending_orders} icon={<Clock className="w-6 h-6" />} trend="Urgent" color="text-brand-gold" />
                 </div>
 
-                {/* الجدول الحقيقي للطلبات */}
+                
                 <div className="grid grid-cols-1 gap-8">
                     <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-6 lg:p-10">
                         <h2 className="text-xl font-bold mb-8 flex items-center gap-3 italic">
@@ -124,7 +124,6 @@ const AdminDashboard = () => {
     );
 };
 
-// StatCard Component كما هو...
 const StatCard = ({ title, value, icon, color, trend }) => (
     <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 hover:bg-white/[0.08] transition-all group">
         <div className="flex justify-between items-start mb-8">

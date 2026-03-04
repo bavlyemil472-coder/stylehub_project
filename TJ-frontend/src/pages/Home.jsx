@@ -12,7 +12,7 @@ const Home = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                // التأكد من أن المسار هو /categories/ ليتطابق مع urls.py في الباك إيند
+
                 const res = await api.get('/categories/'); 
                 setCategories(res.data);
             } catch (err) {
@@ -27,7 +27,6 @@ const Home = () => {
 
     return (
         <div className="bg-white min-h-screen font-body">
-            {/* 1. Hero Section - التصميم الفاخر المظلم */}
             <section className="relative h-[80vh] flex items-center justify-center bg-[#0b0b0b] overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#D4AF3710_0%,_transparent_70%)]"></div>
                 <div className="absolute top-0 left-0 w-full h-full opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
@@ -72,7 +71,6 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* 2. Categories Section */}
             <section id="categories" className="py-32 max-w-7xl mx-auto px-6">
                 <div className="text-center mb-24">
                     <span className="text-brand-gold text-[10px] font-black uppercase tracking-[0.5em] mb-4 block">Our Legacy</span>
@@ -122,7 +120,6 @@ const Home = () => {
                 )}
             </section>
 
-            {/* 3. Quote Section */}
             <section className="py-32 bg-brand-gray/20">
                 <div className="max-w-4xl mx-auto text-center px-6">
                     <p className="text-brand-dark/40 text-4xl md:text-6xl font-display italic leading-snug">

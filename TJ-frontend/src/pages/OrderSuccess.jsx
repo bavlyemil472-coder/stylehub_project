@@ -6,14 +6,12 @@ const OrderSuccess = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   
-  // محاولة الحصول على رقم الطلب من الـ state أو من الـ URL (لضمان العمل مع بوابات الدفع)
   const orderId = location.state?.orderId || queryParams.get('merchant_order_id') || queryParams.get('order_id');
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
       <div className="max-w-sm w-full text-center">
         
-        {/* Success Icon - انيميشن هادئ يتناسب مع البراند */}
         <div className="relative mb-12 inline-block">
           <div className="absolute inset-0 bg-brand-gold/10 rounded-full scale-[2.5] blur-3xl animate-pulse"></div>
           <div className="relative z-10 w-20 h-20 bg-brand-dark rounded-full flex items-center justify-center shadow-2xl">
@@ -29,9 +27,7 @@ const OrderSuccess = () => {
           شكراً لثقتك في Tri Jolie. <br/> بدأنا الآن في تجهيز قطعك المختارة بكل حب.
         </p>
 
-        {/* Order Info Receipt Card - Ticket Effect */}
         <div className="bg-brand-gray/40 rounded-[2rem] p-8 mb-10 border border-brand-gray relative overflow-hidden">
-          {/* الدوائر الجانبية لشكل التذكرة */}
           <div className="absolute top-1/2 -left-3 w-6 h-6 bg-white rounded-full -translate-y-1/2 border-r border-brand-gray"></div>
           <div className="absolute top-1/2 -right-3 w-6 h-6 bg-white rounded-full -translate-y-1/2 border-l border-brand-gray"></div>
           
@@ -50,7 +46,6 @@ const OrderSuccess = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="space-y-4">
           <Link 
             to="/orders" 
@@ -68,7 +63,6 @@ const OrderSuccess = () => {
           </Link>
         </div>
 
-        {/* Brand Footer */}
         <div className="mt-16 pt-8 border-t border-gray-50">
           <p className="text-[8px] text-gray-300 font-bold uppercase tracking-[0.6em]">
             Tri Jolie Family Wear &copy; 2026
