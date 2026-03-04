@@ -23,6 +23,7 @@ class Order(models.Model):
     PAYMENT_METHOD_CHOICES = [
         ('visa', 'Visa'),
         ('cash', 'Cash'),
+        ('INSTAPAY', 'InstaPay'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
@@ -57,6 +58,13 @@ class Order(models.Model):
     phone = models.CharField(max_length=20, blank=True,default='') 
     address = models.TextField(max_length=500, default='no address')
     city = models.CharField(max_length=100, default='Cairo')
+    payment_screenshot = models.ImageField(
+        upload_to='payments/instapay/%Y/%m/', 
+        blank=True, 
+        null=True
+    )
+    
+    payment_notes = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"Order #{self.id} by {self.user.email}"

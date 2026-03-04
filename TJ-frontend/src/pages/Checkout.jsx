@@ -2,24 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { ShoppingBag, Truck, CreditCard, Wallet, MapPin, User, Phone, ChevronRight, ShieldCheck } from 'lucide-react';
+import { ShoppingBag, Truck, CreditCard, Wallet, MapPin, User, Phone, ChevronRight, ShieldCheck, Camera } from 'lucide-react';
 
 const Checkout = () => {
     const navigate = useNavigate();
     const [cart, setCart] = useState(null);
-    const [shippingRates, setShippingRates] = useState([]); // قائمة المحافظات من الباك-إيند
-    const [selectedShippingPrice, setSelectedShippingPrice] = useState(0); // سعر شحن المحافظة المختارة
+    const [shippingRates, setShippingRates] = useState([]);
+    const [selectedShippingPrice, setSelectedShippingPrice] = useState(0);
     
+    const [screenshot, setScreenshot] = useState(null);
+
     const [formData, setFormData] = useState({
         full_name: '',
         phone: '',
         address: '',
-        city: '', // تركناها فارغة ليختار المستخدم
+        city: '', 
         payment_method: 'cash'
     });
 
     useEffect(() => {
-        // 1. جلب بيانات السلة
         api.get('/cart/') 
             .then(res => setCart(res.data))
             .catch(() => {
@@ -27,13 +28,11 @@ const Checkout = () => {
                 navigate('/shop');
             });
 
-        // 2. جلب أسعار الشحن من الـ API الجديد
         api.get('/shipping-rates/')
             .then(res => setShippingRates(res.data))
             .catch(err => console.error("Error fetching shipping rates:", err));
     }, [navigate]);
 
-    // دالة التعامل مع تغيير المحافظة وحساب الشحن
     const handleCityChange = (cityName) => {
         const rate = shippingRates.find(r => r.city_name === cityName);
         setFormData({ ...formData, city: cityName });
@@ -53,6 +52,11 @@ const Checkout = () => {
             return;
         }
 
+        if (formData.payment_method === 'INSTAPAY' && !screenshot) {
+            toast.error("يرجى رفع صورة سكرين شوت للتحويل");
+            return;
+        }
+
         const phoneRegex = /^01[0125][0-9]{8}$/; 
         if (!phoneRegex.test(formData.phone)) {
             toast.error("يرجى إدخال رقم هاتف مصري صحيح مكون من 11 رقم");
@@ -62,7 +66,17 @@ const Checkout = () => {
         const loadingToast = toast.loading('جاري معالجة طلبك...');
 
         try {
-            const response = await api.post('/orders/create/', formData);
+            const dataToSend = new FormData();
+            Object.keys(formData).forEach(key => dataToSend.append(key, formData[key]));
+            
+            if (screenshot) {
+                dataToSend.append('payment_screenshot', screenshot);
+            }
+
+            const response = await api.post('/orders/create/', dataToSend, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
             toast.dismiss(loadingToast);
 
             if (formData.payment_method === 'visa') {
@@ -96,7 +110,6 @@ const Checkout = () => {
         <div className="min-h-screen bg-white py-20 px-6">
             <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
                 
-                {/* 1. Shipping Form Section */}
                 <div className="lg:col-span-7">
                     <header className="mb-12">
                         <div className="flex items-center gap-2 mb-2">
@@ -114,22 +127,19 @@ const Checkout = () => {
                                     <User className="w-3 h-3" /> الاسم الكامل
                                 </label>
                                 <input 
-                                    type="text" 
-                                    required
+                                    type="text" required
                                     className="w-full bg-brand-gray/50 border border-transparent rounded-2xl py-4 px-5 text-sm font-bold text-brand-dark focus:bg-white focus:border-brand-gold transition-all outline-none"
-                                    placeholder="الاسم الكامل كما هو مطلوب..."
+                                    placeholder="الاسم الكامل..."
                                     value={formData.full_name}
                                     onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                                 />
                             </div>
-
                             <div className="space-y-3">
                                 <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-brand-dark">
                                     <Phone className="w-3 h-3" /> رقم الهاتف
                                 </label>
                                 <input 
-                                    type="tel" 
-                                    required
+                                    type="tel" required
                                     className="w-full bg-brand-gray/50 border border-transparent rounded-2xl py-4 px-5 text-sm font-bold text-brand-dark focus:bg-white focus:border-brand-gold transition-all outline-none"
                                     placeholder="01xxxxxxxxx"
                                     value={formData.phone}
@@ -138,7 +148,6 @@ const Checkout = () => {
                             </div>
                         </div>
 
-                        {/* المحافظة بنظام الـ Dropdown */}
                         <div className="space-y-3">
                             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-brand-dark">
                                 <MapPin className="w-3 h-3" /> المحافظة
@@ -151,9 +160,7 @@ const Checkout = () => {
                             >
                                 <option value="">اختر المحافظة...</option>
                                 {shippingRates.map(rate => (
-                                    <option key={rate.id} value={rate.city_name}>
-                                        {rate.city_name}
-                                    </option>
+                                    <option key={rate.id} value={rate.city_name}>{rate.city_name}</option>
                                 ))}
                             </select>
                         </div>
@@ -173,29 +180,57 @@ const Checkout = () => {
 
                         <div className="pt-6">
                             <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-6">اختر وسيلة الدفع المفضلة</h3>
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <button 
                                     type="button"
                                     onClick={() => setFormData({...formData, payment_method: 'cash'})}
                                     className={`flex flex-col items-center gap-3 py-6 px-4 rounded-[2rem] border-2 transition-all duration-500 ${formData.payment_method === 'cash' ? 'border-brand-gold bg-brand-dark text-white' : 'border-brand-gray text-gray-400 bg-white hover:border-brand-gold/30'}`}
                                 >
-                                    <Wallet className={`w-6 h-6 ${formData.payment_method === 'cash' ? 'text-brand-gold' : ''}`} />
-                                    <span className="font-black uppercase text-[10px] tracking-widest">الدفع عند الاستلام</span>
+                                    <Wallet className={`w-5 h-5 ${formData.payment_method === 'cash' ? 'text-brand-gold' : ''}`} />
+                                    <span className="font-black uppercase text-[9px] tracking-widest">كاش عند الاستلام</span>
                                 </button>
+                                
                                 <button 
                                     type="button"
                                     onClick={() => setFormData({...formData, payment_method: 'visa'})}
                                     className={`flex flex-col items-center gap-3 py-6 px-4 rounded-[2rem] border-2 transition-all duration-500 ${formData.payment_method === 'visa' ? 'border-brand-gold bg-brand-dark text-white' : 'border-brand-gray text-gray-400 bg-white hover:border-brand-gold/30'}`}
                                 >
-                                    <CreditCard className={`w-6 h-6 ${formData.payment_method === 'visa' ? 'text-brand-gold' : ''}`} />
-                                    <span className="font-black uppercase text-[10px] tracking-widest">بطاقة ائتمان</span>
+                                    <CreditCard className={`w-5 h-5 ${formData.payment_method === 'visa' ? 'text-brand-gold' : ''}`} />
+                                    <span className="font-black uppercase text-[9px] tracking-widest">بطاقة ائتمان</span>
+                                </button>
+
+                                <button 
+                                    type="button"
+                                    onClick={() => setFormData({...formData, payment_method: 'INSTAPAY'})}
+                                    className={`flex flex-col items-center gap-3 py-6 px-4 rounded-[2rem] border-2 transition-all duration-500 ${formData.payment_method === 'INSTAPAY' ? 'border-brand-gold bg-brand-dark text-white' : 'border-brand-gray text-gray-400 bg-white hover:border-brand-gold/30'}`}
+                                >
+                                    <span className="text-brand-gold font-black italic text-lg tracking-tighter">InstaPay</span>
+                                    <span className="font-black uppercase text-[9px] tracking-widest">انستا باي</span>
                                 </button>
                             </div>
+
+                            {formData.payment_method === 'INSTAPAY' && (
+                                <div className="mt-6 p-6 bg-brand-gray/30 rounded-[2rem] border border-dashed border-brand-gold/30 animate-in fade-in duration-700">
+                                    <p className="text-[10px] font-bold text-brand-dark/70 mb-3 text-center uppercase tracking-widest">يرجى التحويل لـ: <span className="text-brand-dark block text-sm mt-1 select-all font-mono">bavly@instapay</span></p>
+                                    <div className="relative group">
+                                        <input 
+                                            type="file" accept="image/*"
+                                            onChange={(e) => setScreenshot(e.target.files[0])}
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                        />
+                                        <div className="bg-white border-2 border-brand-gray rounded-xl py-4 px-6 flex items-center justify-center gap-3 group-hover:border-brand-gold transition-colors">
+                                            <Camera className="w-4 h-4 text-brand-gold" />
+                                            <span className="text-[10px] font-black uppercase text-gray-500">
+                                                {screenshot ? screenshot.name : "اضغط لرفع سكرين شوت التحويل"}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </form>
                 </div>
 
-                {/* 2. Order Summary Section */}
                 <div className="lg:col-span-5">
                     <div className="bg-brand-dark rounded-[3rem] p-10 text-white sticky top-24 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] border border-white/5">
                         <h2 className="text-[11px] font-black mb-10 border-b border-white/10 pb-6 uppercase tracking-[0.5em] text-brand-gold flex justify-between items-center">
@@ -205,19 +240,17 @@ const Checkout = () => {
 
                         <div className="space-y-8 max-h-[350px] overflow-y-auto mb-10 pr-2 custom-scrollbar">
                             {(cart.items || []).map((item) => (
-                                <div key={item.id} className="flex justify-between items-start group">
+                                <div key={item.id} className="flex justify-between items-start">
                                     <div className="flex gap-4">
                                         <div className="relative">
-                                            <div className="w-16 h-20 bg-white/5 rounded-2xl flex items-center justify-center text-[10px] font-bold text-brand-gold border border-white/10 overflow-hidden">
+                                            <div className="w-16 h-20 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 overflow-hidden">
                                                 <img 
                                                     src={item.image.startsWith('http') ? item.image : `http://127.0.0.1:8000${item.image}`} 
                                                     alt={item.product_name} 
                                                     className="w-full h-full object-cover opacity-90" 
                                                 />
                                             </div>
-                                            <span className="absolute -top-2 -right-2 bg-brand-gold text-brand-dark w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black">
-                                                {item.quantity}
-                                            </span>
+                                            <span className="absolute -top-2 -right-2 bg-brand-gold text-brand-dark w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black">{item.quantity}</span>
                                         </div>
                                         <div>
                                             <p className="font-bold uppercase text-[11px] tracking-tight text-white mb-1">{item.product_name}</p>
@@ -225,34 +258,27 @@ const Checkout = () => {
                                             <p className="text-[10px] text-brand-gold/60 mt-1 font-bold">{item.price} EGP</p>
                                         </div>
                                     </div>
-                                    <p className="text-sm font-bold text-brand-gold italic">
-                                        {(item.price * item.quantity).toFixed(0)} EGP
-                                    </p>
+                                    <p className="text-sm font-bold text-brand-gold italic">{(item.price * item.quantity).toFixed(0)} EGP</p>
                                 </div>
                             ))}
                         </div>
 
                         <div className="pt-10 border-t border-white/10 space-y-4">
-                            <div className="flex justify-between items-center text-gray-400">
-                                <span className="text-[10px] font-bold uppercase tracking-widest">الشحن</span>
-                                <span className="text-[10px] font-bold uppercase text-brand-gold">
-                                    {selectedShippingPrice > 0 ? `${selectedShippingPrice} EGP` : "اختر المحافظة"}
-                                </span>
+                            <div className="flex justify-between items-center text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                                <span>الشحن</span>
+                                <span className="text-brand-gold">{selectedShippingPrice > 0 ? `${selectedShippingPrice} EGP` : "اختر المحافظة"}</span>
                             </div>
                             <div className="flex justify-between items-center mb-12">
                                 <span className="text-gray-400 font-bold uppercase tracking-[0.2em] text-[11px]">المجموع النهائي</span>
-                                <div className="text-right">
-                                    <span className="text-3xl font-bold text-brand-gold font-display italic tracking-tight">
-                                        {/* السعر الإجمالي = سعر السلة + سعر الشحن المختار */}
-                                        {parseFloat(cart.total_cart_price || 0) + selectedShippingPrice}
-                                    </span>
-                                    <span className="text-brand-gold text-[10px] ml-2 font-black uppercase">EGP</span>
+                                <div className="text-right text-3xl font-bold text-brand-gold font-display italic tracking-tight">
+                                    {parseFloat(cart.total_cart_price || 0) + selectedShippingPrice}
+                                    <span className="text-[10px] ml-2 font-black uppercase tracking-normal font-sans">EGP</span>
                                 </div>
                             </div>
                             
                             <button 
                                 onClick={handleCreateOrder}
-                                className="w-full bg-brand-gold text-brand-dark py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] hover:bg-white hover:scale-[1.02] transition-all duration-500 flex items-center justify-center gap-3 shadow-xl shadow-brand-gold/10 group"
+                                className="w-full bg-brand-gold text-brand-dark py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] hover:bg-white hover:scale-[1.02] transition-all duration-500 flex items-center justify-center gap-3 shadow-xl group"
                             >
                                 إتمام الطلب الآن
                                 <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

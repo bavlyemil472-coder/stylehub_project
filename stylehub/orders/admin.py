@@ -14,7 +14,14 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ('status', 'payment_status')
     search_fields = ('id', 'user__email')
     inlines = [OrderItemInline]
-    readonly_fields = ('total_amount', 'created_at')
+    
+    readonly_fields = ('total_amount', 'created_at', 'payment_screenshot_preview')
+
+    def payment_screenshot_preview(self, obj):
+        if obj.payment_screenshot:
+            from django.utils.html import format_html
+            return format_html('<img src="{}" style="max-width:300px; border: 2px solid #ddd; border-radius: 8px;"/>', obj.payment_screenshot.url)
+        return "No screenshot uploaded"
 
 @admin.register(ShippingRate)
 class ShippingRateAdmin(admin.ModelAdmin):
