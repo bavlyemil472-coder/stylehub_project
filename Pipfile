@@ -14,6 +14,11 @@ django-rest-passwordreset = "*"
 mysqlclient = "*"
 python-decouple = "*"
 django-allauth = "*"
+django-import-export = "*"
+django-environ = "*"
+cloudinary = "*"
+django-cloudinary-storage = "*"
+tablib = {extras = ["xlsx"], version = "*"}
 
 [dev-packages]
 

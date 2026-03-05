@@ -38,6 +38,11 @@ from django.dispatch import receiver
 
 @receiver(post_delete, sender=CartItem)
 def auto_restore_stock(sender, instance, **kwargs):
+   
+    if hasattr(instance, 'skip_stock_restore') and instance.skip_stock_restore:
+        return
+
     variant = instance.variant
-    variant.stock += instance.quantity
-    variant.save()
+    if variant:
+        variant.stock += instance.quantity
+        variant.save()

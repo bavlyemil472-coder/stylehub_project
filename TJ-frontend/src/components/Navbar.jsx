@@ -12,6 +12,7 @@ import {
   ChevronDown,
   LayoutDashboard 
 } from 'lucide-react';
+import { formatImageUrl } from '../utils/helpers'; 
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -191,7 +192,6 @@ const Navbar = () => {
               Collections <ChevronDown className="w-3 h-3 -rotate-90 text-brand-gold/30" />
             </Link>
 
-            
             {isAdmin && (
               <Link 
                 to="/admin-dashboard" 
@@ -213,10 +213,10 @@ const Navbar = () => {
             {isLoggedIn ? (
               <>
                 <Link to="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-brand-gold">
-                   <User className="w-4 h-4" /> Profile Settings
+                    <User className="w-4 h-4" /> Profile Settings
                 </Link>
                 <button onClick={handleLogout} className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-red-500">
-                   <LogOut className="w-4 h-4" /> Sign Out
+                    <LogOut className="w-4 h-4" /> Sign Out
                 </button>
               </>
             ) : (

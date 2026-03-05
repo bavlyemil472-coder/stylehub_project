@@ -24,63 +24,52 @@ from .payments import (
 class CreateOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @transaction.atomic
     def post(self, request):
         user = request.user
         
-        cart = Cart.objects.filter(user=user).first()
-        if not cart or not cart.items.exists():
-            return Response({'error': 'السلة فارغة، لا يمكن إتمام الطلب.'}, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            cart = Cart.objects.filter(user=user).first()
+            if not cart or not cart.items.exists():
+                return Response({'error': 'السلة فارغة'}, status=status.HTTP_400_BAD_REQUEST)
 
-        full_name = request.data.get('full_name')
-        phone = request.data.get('phone')
-        address = request.data.get('address')
-        city = request.data.get('city', 'Cairo')
-        payment_method = request.data.get('payment_method', 'cash')
-
-        if not all([full_name, phone, address]):
-            return Response({'error': 'يرجى إكمال بيانات الشحن (الاسم، الهاتف، العنوان).'}, status=status.HTTP_400_BAD_REQUEST)
-
-        order = Order.objects.create(
-            user=user,
-            full_name=full_name,
-            phone=phone,
-            address=address,
-            city=city,
-            payment_method=payment_method,
-            total_amount=0,
-            payment_status='unpaid' if payment_method == 'visa' else 'pending'
-        )
-
-        total = 0
-        for item in cart.items.all():
-            variant = item.variant
-            
-            if item.quantity > variant.stock:
-                transaction.set_rollback(True)
-                return Response({'error': f'المخزون غير كافٍ للمنتج {variant.product.name}'}, status=status.HTTP_400_BAD_REQUEST)
-
-            OrderItem.objects.create(
-                order=order,
-                variant=variant,
-                product_name=variant.product.name,
-                size=variant.size.name,
-                quantity=item.quantity,
-                price=variant.product.price
+            order = Order.objects.create(
+                user=user,
+                full_name=request.data.get('full_name'),
+                phone=request.data.get('phone'),
+                address=request.data.get('address'),
+                city=request.data.get('city'),
+                payment_method=request.data.get('payment_method'),
+                total_amount=0,
+                payment_screenshot=request.FILES.get('payment_screenshot')
             )
 
-            total += variant.product.price * item.quantity
+            total_price = 0
+            items = list(cart.items.all()) # تحويل العناصر لقائمة للتعامل معها
+
+            for item in items:
+                variant = item.variant
+                OrderItem.objects.create(
+                    order=order,
+                    variant=variant,
+                    product_name=variant.product.name,
+                    size=variant.size.name,
+                    quantity=item.quantity,
+                    price=variant.product.price
+                )
+                total_price += variant.product.price * item.quantity
+                
+                # --- الجزء الجديد لمنع عودة الاستوك ---
+                item.skip_stock_restore = True 
+                # ------------------------------------
+
+            order.total_amount = total_price
+            order.save()
             
-            variant.stock -= item.quantity
-            variant.save()
+            # الآن عند الحذف، الـ Signal سيري skip_stock_restore ولن يزيد المخزون
+            for item in items:
+                item.delete()
 
-        order.total_amount = total
-        order.save()
-        cart.items.all().delete()
-
-        serializer = OrderSerializer(order)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+            return Response({'id': order.id, 'status': 'success'}, status=status.HTTP_201_CREATED)
 class MyOrdersView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -129,7 +118,6 @@ class StartPaymentView(APIView):
 
 @csrf_exempt
 def paymob_webhook(request):
-    """هذه الدالة تستقبل إشارة نجاح الدفع من سيرفرات Paymob"""
     data = request.POST or request.GET
     if data.get("success") == "true":
         order_id = data.get("merchant_order_id")

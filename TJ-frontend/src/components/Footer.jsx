@@ -7,7 +7,7 @@ const Footer = () => {
   const socialLinks = {
     
     facebook: "https://www.facebook.com/share/1Ag9BPyEXd/",
-    whatsapp: "https://wa.me/201234567890"  
+    whatsapp: "https://wa.me/01559892697"  
   };
 
   return (

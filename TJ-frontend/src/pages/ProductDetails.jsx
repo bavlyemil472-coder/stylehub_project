@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { ShoppingCart, Plus, Minus, ArrowLeft, ShieldCheck, Truck, Star } from 'lucide-react';
+import { formatImageUrl } from '../utils/helpers'; 
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -20,8 +21,11 @@ const ProductDetail = () => {
       .then(res => {
         setProduct(res.data);
         setActiveImage(res.data.image); 
+        // اختيار أول مقاس متوفر تلقائياً عند التحميل
         if (res.data.variants && res.data.variants.length > 0) {
-          setSelectedVariant(res.data.variants[0]);
+          // نبحث عن أول مقاس مخزونه أكبر من 0 فعلياً
+          const firstAvailable = res.data.variants.find(v => Number(v.stock) > 0);
+          setSelectedVariant(firstAvailable || res.data.variants[0]);
         }
       })
       .catch(() => toast.error("فشل في تحميل تفاصيل المنتج"));
@@ -34,10 +38,15 @@ const ProductDetail = () => {
       navigate('/login');
       return;
     }
-    // ------------------------------------
 
     if (!selectedVariant) {
         toast.error("يرجى اختيار المقاس أولاً");
+        return;
+    }
+
+    // تأكيد إضافي قبل الإرسال للسيرفر بناءً على المخزون
+    if (Number(selectedVariant.stock) <= 0) {
+        toast.error("عذراً، هذا المقاس غير متوفر حالياً");
         return;
     }
 
@@ -73,14 +82,12 @@ const ProductDetail = () => {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-
     const token = localStorage.getItem('access_token');
     if (!token) {
       toast.error("عذراً، يجب تسجيل الدخول لتتمكن من إضافة تقييمك");
       navigate('/login');
       return;
     }
-    // -------------------------------------------
 
     try {
       await api.post(`/products/${id}/add-review/`, { rating, comment });
@@ -115,7 +122,7 @@ const ProductDetail = () => {
           <div className="lg:col-span-7 space-y-6">
             <div className="bg-brand-gray/30 rounded-[3rem] overflow-hidden aspect-[4/5] relative group shadow-sm">
                 <img 
-                  src={activeImage} 
+                  src={formatImageUrl(activeImage)} 
                   alt={product.name}
                   className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
                 />
@@ -126,7 +133,7 @@ const ProductDetail = () => {
                 onClick={() => setActiveImage(product.image)}
                 className={`w-20 h-24 rounded-2xl overflow-hidden flex-shrink-0 transition-all duration-300 border-2 ${activeImage === product.image ? 'border-brand-gold scale-95 shadow-lg' : 'border-transparent opacity-50'}`}
               >
-                <img src={product.image} className="w-full h-full object-cover" alt="main" />
+                <img src={formatImageUrl(product.image)} className="w-full h-full object-cover" alt="main" />
               </button>
 
               {product.p_images && product.p_images.map((img) => (
@@ -135,14 +142,14 @@ const ProductDetail = () => {
                   onClick={() => setActiveImage(img.image)}
                   className={`w-20 h-24 rounded-2xl overflow-hidden flex-shrink-0 transition-all duration-300 border-2 ${activeImage === img.image ? 'border-brand-gold scale-95 shadow-lg' : 'border-transparent opacity-50'}`}
                 >
-                  <img src={img.image} className="w-full h-full object-cover" alt="gallery" />
+                  <img src={formatImageUrl(img.image)} className="w-full h-full object-cover" alt="gallery" />
                 </button>
               ))}
             </div>
           </div>
 
           <div className="lg:col-span-5 flex flex-col pt-4">
-            <span className="text-brand-gold font-black uppercase tracking-[0.4em] text-[9px] mb-4">Tri Jolie Premium</span>
+            <span className="text-brand-gold font-black uppercase tracking-[0.4em] text-[9px] mb-4">TRES JOLIE Premium</span>
             
             <h1 className="text-4xl font-bold text-brand-dark italic font-display uppercase tracking-tighter mb-4 leading-tight">
               {product.name}
@@ -162,6 +169,7 @@ const ProductDetail = () => {
               {product.description}
             </p>
 
+            {/* الألوان المتاحة */}
             {product.other_colors && product.other_colors.length > 0 && (
               <div className="mb-10 animate-in fade-in slide-in-from-bottom-2 duration-700">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-dark mb-5 flex items-center gap-2">
@@ -192,24 +200,35 @@ const ProductDetail = () => {
               </div>
             )}
 
+            {/* الجزء الجديد: قفل المقاسات المنتهية تماماً */}
             <div className="mb-10">
               <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-dark mb-5">المقاسات</h3>
               <div className="flex flex-wrap gap-3">
-                {product.variants.map(v => (
-                  <button
-                    key={v.id}
-                    disabled={v.stock === 0}
-                    onClick={() => setSelectedVariant(v)}
-                    className={`min-w-[60px] px-5 py-3 rounded-2xl font-bold text-[11px] uppercase tracking-widest transition-all duration-500 border-2 ${
-                      v.stock === 0 ? 'bg-gray-50 text-gray-200 border-gray-100 cursor-not-allowed' :
-                      selectedVariant?.id === v.id 
-                      ? 'border-brand-dark bg-brand-dark text-white shadow-xl' 
-                      : 'border-gray-100 text-gray-400 hover:border-brand-gold'
-                    }`}
-                  >
-                    {v.size_name}
-                  </button>
-                ))}
+                {product.variants.map(v => {
+                  const isOutOfStock = Number(v.stock) <= 0;
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      disabled={isOutOfStock} // قفل الزر برمجياً
+                      onClick={() => !isOutOfStock && setSelectedVariant(v)}
+                      className={`min-w-[60px] px-5 py-3 rounded-2xl font-bold text-[11px] uppercase tracking-widest transition-all duration-300 border-2 
+                        ${isOutOfStock 
+                          ? 'bg-gray-100 text-gray-300 border-gray-100 cursor-not-allowed opacity-50 pointer-events-none' 
+                          : selectedVariant?.id === v.id 
+                            ? 'border-brand-dark bg-brand-dark text-white shadow-xl' 
+                            : 'border-gray-100 text-gray-400 hover:border-brand-gold'
+                        }`}
+                    >
+                      <span className={isOutOfStock ? 'line-through opacity-50' : ''}>
+                        {v.size_name}
+                      </span>
+                      {isOutOfStock && (
+                        <span className="block text-[7px] mt-0.5 text-red-500 font-black">نفذت</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -223,9 +242,15 @@ const ProductDetail = () => {
                 
                 <button 
                   onClick={handleAddToCart}
-                  className="flex-1 bg-brand-dark text-white py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] hover:bg-brand-gold hover:text-brand-dark transition-all duration-700 shadow-2xl shadow-brand-dark/20 flex items-center justify-center gap-3 active:scale-95"
+                  disabled={!selectedVariant || Number(selectedVariant?.stock) <= 0}
+                  className={`flex-1 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-700 shadow-2xl flex items-center justify-center gap-3 active:scale-95 ${
+                    (!selectedVariant || Number(selectedVariant?.stock) <= 0)
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                    : 'bg-brand-dark text-white hover:bg-brand-gold hover:text-brand-dark shadow-brand-dark/20'
+                  }`}
                 >
-                  <ShoppingCart className="w-4 h-4" /> أضف إلى السلة
+                  <ShoppingCart className="w-4 h-4" /> 
+                  {(!selectedVariant || Number(selectedVariant?.stock) <= 0) ? 'غير متوفر' : 'أضف إلى السلة'}
                 </button>
               </div>
 
@@ -249,9 +274,9 @@ const ProductDetail = () => {
           </div>
         </div>
 
+        {/* التقييمات */}
         <div className="mt-32 border-t border-gray-100 pt-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-            
             <div className="lg:col-span-7">
               <h3 className="text-2xl font-bold text-brand-dark italic font-display uppercase tracking-tighter mb-12">آراء العملاء</h3>
               <div className="space-y-8">
@@ -301,7 +326,7 @@ const ProductDetail = () => {
                       onChange={(e) => setComment(e.target.value)}
                       required
                       className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-xs outline-none focus:border-brand-gold transition-all min-h-[120px] placeholder:text-gray-600"
-                      placeholder="كيف كانت جودة الخامة والمقاس؟"
+                      placeholder="رأيك يهمنا"
                     />
                   </div>
                   <button 
@@ -313,7 +338,6 @@ const ProductDetail = () => {
                 </form>
               </div>
             </div>
-            
           </div>
         </div>
 

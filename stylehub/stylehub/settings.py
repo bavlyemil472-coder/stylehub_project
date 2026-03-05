@@ -42,19 +42,21 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
     'rest_framework',
     "corsheaders",
     'django_rest_passwordreset',
-
-
-    # Local apps
+    'import_export',
     'accounts',
     'products',
     'cart',
     'orders',
 ]
 
+IMPORT_EXPORT_SKIP_ADMIN_LOG = True
+IMPORT_EXPORT_ENCODING = 'utf-8-sig'
 SITE_ID = 1
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -169,5 +171,20 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your-email@gmail.com'  # إيميل المحل أو شركتك
+EMAIL_HOST_USER = 'tresjolie.bns@gmail.com'  # إيميل المحل أو شركتك
 EMAIL_HOST_PASSWORD = 'your-app-password' # كلمة سر التطبيقات (App Password) وليس باسورد الإيميل العادي
+
+import os
+from pathlib import Path
+import environ
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': env('CLOUDINARY_API_KEY'), # اتأكد إن الاسم هنا مطابق للاسم في ملف الـ .env
+    'API_SECRET': env('CLOUDINARY_API_SECRET'),
+}

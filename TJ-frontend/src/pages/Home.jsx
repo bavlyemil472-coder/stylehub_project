@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import logo from '../assets/logo.jpeg';
+import { formatImageUrl } from '../utils/helpers'; 
 
 const Home = () => {
     const [categories, setCategories] = useState([]);
@@ -12,7 +13,6 @@ const Home = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-
                 const res = await api.get('/categories/'); 
                 setCategories(res.data);
             } catch (err) {
@@ -93,7 +93,7 @@ const Home = () => {
                                     className="relative h-[500px] rounded-[3rem] overflow-hidden group cursor-pointer shadow-2xl transition-all duration-700 hover:-translate-y-4"
                                 >
                                     <img 
-                                        src={cat.image} 
+                                        src={formatImageUrl(cat.image)} 
                                         className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110"
                                         alt={cat.name}
                                     />

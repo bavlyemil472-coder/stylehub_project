@@ -1,11 +1,11 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import product, category, Size, ProductVariant, ProductImage # أضفنا ProductImage هنا
+from django.utils.safestring import mark_safe
+from .models import product, category, Size, ProductVariant, ProductImage
 
-# 1. إضافة الصور الإضافية داخل صفحة المنتج
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
-    extra = 3 # عدد الخانات الفارغة التي تظهر افتراضياً للرفع
+    extra = 3 
     readonly_fields = ['image_preview']
 
     def image_preview(self, obj):
@@ -14,19 +14,17 @@ class ProductImageInline(admin.TabularInline):
         return "-"
     image_preview.short_description = "Preview"
 
-# 2. إضافة المقاسات داخل صفحة المنتج
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
+    fields = ('size', 'stock')
 
 @admin.register(product)
 class ProductAdmin(admin.ModelAdmin):
-    # عرض معلومات المنتج الأساسية ومعاينة الصورة في الجدول الرئيسي
-    list_display = ('image_tag', 'name', 'price', 'category', 'is_available')
+    list_display = ('image_tag', 'name', 'price', 'category', 'total_stock_display', 'is_available')
     list_filter = ('is_available', 'category')
     search_fields = ('name',)
     
-    # دمج ألبوم الصور والمقاسات في صفحة تعديل المنتج
     inlines = [ProductImageInline, ProductVariantInline]
 
     def image_tag(self, obj):
@@ -34,6 +32,11 @@ class ProductAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="width: 45px; height: 45px; border-radius: 5px; object-fit: cover;" />', obj.image.url)
         return "No Image"
     image_tag.short_description = "Main Image"
+
+    def total_stock_display(self, obj):
+        total = sum(variant.stock for variant in obj.variants.all())
+        return f"{total} قطع"
+    total_stock_display.short_description = "إجمالي المخزون"
 
 @admin.register(category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -56,7 +59,21 @@ class CategoryAdmin(admin.ModelAdmin):
 class SizeAdmin(admin.ModelAdmin):
     list_display = ('name',)
 
-# اختياري: إذا أردت إدارة الصور بشكل منفصل أيضاً
+@admin.register(ProductVariant)
+class ProductVariantAdmin(admin.ModelAdmin):
+    list_display = ('product', 'size', 'stock', 'stock_status')
+    list_editable = ('stock',)
+    list_filter = ('size', 'product')
+    search_fields = ('product__name',)
+
+    def stock_status(self, obj):
+        if obj.stock <= 0:
+            return mark_safe('<b style="color: #d32f2f;">❌ نفذ</b>')
+        elif obj.stock <= 3:
+            return mark_safe('<b style="color: #f57c00;">⚠️ منخفض</b>')
+        return mark_safe('<b style="color: #388e3c;">✅ متوفر</b>')
+    stock_status.short_description = "حالة الاستوك"
+
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ('product', 'image_preview')

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Package, Clock, CheckCircle2, Truck, AlertCircle, ChevronRight, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { formatImageUrl } from '../utils/helpers'; 
 
 const MyOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -109,7 +110,15 @@ const MyOrders = () => {
                                         <div key={idx} className="flex items-center gap-4 bg-brand-gray/20 px-4 py-2 rounded-2xl border border-transparent hover:border-brand-gold/10 transition-colors">
                                             <div className="relative">
                                                 <div className="w-10 h-10 bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
-                                                    <Package className="w-full h-full p-2.5 text-gray-200" />
+                                                    {item.product_image ? (
+                                                        <img 
+                                                            src={formatImageUrl(item.product_image)} 
+                                                            className="w-full h-full object-cover" 
+                                                            alt={item.product_name} 
+                                                        />
+                                                    ) : (
+                                                        <Package className="w-full h-full p-2.5 text-gray-200" />
+                                                    )}
                                                 </div>
                                                 <span className="absolute -top-2 -right-2 w-5 h-5 bg-brand-dark text-white text-[8px] font-black rounded-full flex items-center justify-center shadow-md">
                                                     {item.quantity}

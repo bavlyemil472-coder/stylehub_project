@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { ShoppingBag, Truck, CreditCard, Wallet, MapPin, User, Phone, ChevronRight, ShieldCheck, Camera } from 'lucide-react';
+import { formatImageUrl } from '../utils/helpers'; 
 
 const Checkout = () => {
     const navigate = useNavigate();
@@ -11,6 +12,8 @@ const Checkout = () => {
     const [selectedShippingPrice, setSelectedShippingPrice] = useState(0);
     
     const [screenshot, setScreenshot] = useState(null);
+    // الجزء الجديد: حالة لمنع تكرار الضغط
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -47,6 +50,9 @@ const Checkout = () => {
     const handleCreateOrder = async (e) => {
         if (e) e.preventDefault();
         
+        // الجزء الجديد: منع تنفيذ الدالة إذا كان هناك طلب قيد المعالجة بالفعل
+        if (isSubmitting) return;
+
         if (!formData.full_name || !formData.address || !formData.phone || !formData.city) {
             toast.error("يرجى ملء جميع بيانات الشحن واختيار المحافظة");
             return;
@@ -63,6 +69,8 @@ const Checkout = () => {
             return;
         }
 
+        // الجزء الجديد: تفعيل حالة الإرسال
+        setIsSubmitting(true);
         const loadingToast = toast.loading('جاري معالجة طلبك...');
 
         try {
@@ -85,6 +93,7 @@ const Checkout = () => {
                     window.location.href = response.data.payment_url;
                 } else {
                     toast.error("رابط الدفع غير متاح حالياً، جرب الكاش");
+                    setIsSubmitting(false); // إعادة التفعيل إذا فشل الرابط
                 }
             } else {
                 toast.success('تم تسجيل طلبك بنجاح! شكراً لثقتك.');
@@ -92,6 +101,7 @@ const Checkout = () => {
             }
         } catch (err) {
             toast.dismiss(loadingToast);
+            setIsSubmitting(false); // الجزء الجديد: إعادة فتح الزر في حالة حدوث خطأ للإصلاح والمحاولة ثانية
             const errorMsg = err.response?.data?.error || "حدث خطأ أثناء إتمام الطلب.";
             toast.error(errorMsg);
         }
@@ -128,6 +138,7 @@ const Checkout = () => {
                                 </label>
                                 <input 
                                     type="text" required
+                                    disabled={isSubmitting}
                                     className="w-full bg-brand-gray/50 border border-transparent rounded-2xl py-4 px-5 text-sm font-bold text-brand-dark focus:bg-white focus:border-brand-gold transition-all outline-none"
                                     placeholder="الاسم الكامل..."
                                     value={formData.full_name}
@@ -140,6 +151,7 @@ const Checkout = () => {
                                 </label>
                                 <input 
                                     type="tel" required
+                                    disabled={isSubmitting}
                                     className="w-full bg-brand-gray/50 border border-transparent rounded-2xl py-4 px-5 text-sm font-bold text-brand-dark focus:bg-white focus:border-brand-gold transition-all outline-none"
                                     placeholder="01xxxxxxxxx"
                                     value={formData.phone}
@@ -154,6 +166,7 @@ const Checkout = () => {
                             </label>
                             <select 
                                 required
+                                disabled={isSubmitting}
                                 className="w-full bg-brand-gray/50 border border-transparent rounded-2xl py-4 px-5 text-sm font-bold text-brand-dark focus:bg-white focus:border-brand-gold transition-all outline-none appearance-none cursor-pointer"
                                 value={formData.city}
                                 onChange={(e) => handleCityChange(e.target.value)}
@@ -171,6 +184,7 @@ const Checkout = () => {
                             </label>
                             <textarea 
                                 required
+                                disabled={isSubmitting}
                                 className="w-full bg-brand-gray/50 border border-transparent rounded-2xl py-4 px-5 text-sm font-bold text-brand-dark focus:bg-white focus:border-brand-gold transition-all min-h-[100px] outline-none"
                                 placeholder="المنطقة، اسم الشارع، رقم المنزل..."
                                 value={formData.address}
@@ -183,6 +197,7 @@ const Checkout = () => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <button 
                                     type="button"
+                                    disabled={isSubmitting}
                                     onClick={() => setFormData({...formData, payment_method: 'cash'})}
                                     className={`flex flex-col items-center gap-3 py-6 px-4 rounded-[2rem] border-2 transition-all duration-500 ${formData.payment_method === 'cash' ? 'border-brand-gold bg-brand-dark text-white' : 'border-brand-gray text-gray-400 bg-white hover:border-brand-gold/30'}`}
                                 >
@@ -192,6 +207,7 @@ const Checkout = () => {
                                 
                                 <button 
                                     type="button"
+                                    disabled={isSubmitting}
                                     onClick={() => setFormData({...formData, payment_method: 'visa'})}
                                     className={`flex flex-col items-center gap-3 py-6 px-4 rounded-[2rem] border-2 transition-all duration-500 ${formData.payment_method === 'visa' ? 'border-brand-gold bg-brand-dark text-white' : 'border-brand-gray text-gray-400 bg-white hover:border-brand-gold/30'}`}
                                 >
@@ -201,6 +217,7 @@ const Checkout = () => {
 
                                 <button 
                                     type="button"
+                                    disabled={isSubmitting}
                                     onClick={() => setFormData({...formData, payment_method: 'INSTAPAY'})}
                                     className={`flex flex-col items-center gap-3 py-6 px-4 rounded-[2rem] border-2 transition-all duration-500 ${formData.payment_method === 'INSTAPAY' ? 'border-brand-gold bg-brand-dark text-white' : 'border-brand-gray text-gray-400 bg-white hover:border-brand-gold/30'}`}
                                 >
@@ -211,10 +228,11 @@ const Checkout = () => {
 
                             {formData.payment_method === 'INSTAPAY' && (
                                 <div className="mt-6 p-6 bg-brand-gray/30 rounded-[2rem] border border-dashed border-brand-gold/30 animate-in fade-in duration-700">
-                                    <p className="text-[10px] font-bold text-brand-dark/70 mb-3 text-center uppercase tracking-widest">يرجى التحويل لـ: <span className="text-brand-dark block text-sm mt-1 select-all font-mono">bavly@instapay</span></p>
+                                    <p className="text-[10px] font-bold text-brand-dark/70 mb-3 text-center uppercase tracking-widest">يرجى التحويل لـ: <span className="text-brand-dark block text-sm mt-1 select-all font-mono">youssefjan3@instapay</span></p>
                                     <div className="relative group">
                                         <input 
                                             type="file" accept="image/*"
+                                            disabled={isSubmitting}
                                             onChange={(e) => setScreenshot(e.target.files[0])}
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                         />
@@ -245,7 +263,7 @@ const Checkout = () => {
                                         <div className="relative">
                                             <div className="w-16 h-20 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 overflow-hidden">
                                                 <img 
-                                                    src={item.image.startsWith('http') ? item.image : `http://127.0.0.1:8000${item.image}`} 
+                                                    src={formatImageUrl(item.image)} 
                                                     alt={item.product_name} 
                                                     className="w-full h-full object-cover opacity-90" 
                                                 />
@@ -278,10 +296,11 @@ const Checkout = () => {
                             
                             <button 
                                 onClick={handleCreateOrder}
-                                className="w-full bg-brand-gold text-brand-dark py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] hover:bg-white hover:scale-[1.02] transition-all duration-500 flex items-center justify-center gap-3 shadow-xl group"
+                                disabled={isSubmitting} // الجزء الجديد: تعطيل الزر عند الإرسال
+                                className={`w-full bg-brand-gold text-brand-dark py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] transition-all duration-500 flex items-center justify-center gap-3 shadow-xl group ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-white hover:scale-[1.02]'}`}
                             >
-                                إتمام الطلب الآن
-                                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                {isSubmitting ? 'جاري معالجة طلبك...' : 'إتمام الطلب الآن'}
+                                {!isSubmitting && <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
                             </button>
                         </div>
                     </div>

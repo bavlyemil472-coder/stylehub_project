@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import api from '../services/api';
+import { formatImageUrl } from '../utils/helpers'; 
 
 const Shop = () => {
     const [products, setProducts] = useState([]);
@@ -13,7 +14,6 @@ const Shop = () => {
             const params = new URLSearchParams(location.search);
             const category = params.get('category');
             const search = params.get('search');
-            
             
             let endpoint = '/products/'; 
             
@@ -64,7 +64,7 @@ const Shop = () => {
                             <Link key={product.id} to={`/product/${product.id}`} className="group">
                                 <div className="aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-gray-50 mb-6 shadow-sm group-hover:shadow-2xl transition-all duration-700 relative">
                                     <img 
-                                        src={product.image} 
+                                        src={formatImageUrl(product.image)} 
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" 
                                         alt={product.name}
                                     />
