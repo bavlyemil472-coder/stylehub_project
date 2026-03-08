@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -15,6 +15,20 @@ const ProductDetail = () => {
 
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
+  useEffect(() => {
+
+  if (window.fbq && product) {
+
+    window.fbq('track', 'ViewContent', {
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price,
+      currency: 'EGP'
+    });
+
+  }
+
+   }, [product]);
 
   useEffect(() => {
     api.get(`/products/${id}/`) 

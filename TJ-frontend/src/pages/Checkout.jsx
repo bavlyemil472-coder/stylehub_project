@@ -69,7 +69,6 @@ const Checkout = () => {
             return;
         }
 
-        // الجزء الجديد: تفعيل حالة الإرسال
         setIsSubmitting(true);
         const loadingToast = toast.loading('جاري معالجة طلبك...');
 
@@ -93,7 +92,7 @@ const Checkout = () => {
                     window.location.href = response.data.payment_url;
                 } else {
                     toast.error("رابط الدفع غير متاح حالياً، جرب الكاش");
-                    setIsSubmitting(false); // إعادة التفعيل إذا فشل الرابط
+                    setIsSubmitting(false); 
                 }
             } else {
                 toast.success('تم تسجيل طلبك بنجاح! شكراً لثقتك.');
@@ -101,7 +100,7 @@ const Checkout = () => {
             }
         } catch (err) {
             toast.dismiss(loadingToast);
-            setIsSubmitting(false); // الجزء الجديد: إعادة فتح الزر في حالة حدوث خطأ للإصلاح والمحاولة ثانية
+            setIsSubmitting(false); 
             const errorMsg = err.response?.data?.error || "حدث خطأ أثناء إتمام الطلب.";
             toast.error(errorMsg);
         }
@@ -208,16 +207,6 @@ const Checkout = () => {
                                 <button 
                                     type="button"
                                     disabled={isSubmitting}
-                                    onClick={() => setFormData({...formData, payment_method: 'visa'})}
-                                    className={`flex flex-col items-center gap-3 py-6 px-4 rounded-[2rem] border-2 transition-all duration-500 ${formData.payment_method === 'visa' ? 'border-brand-gold bg-brand-dark text-white' : 'border-brand-gray text-gray-400 bg-white hover:border-brand-gold/30'}`}
-                                >
-                                    <CreditCard className={`w-5 h-5 ${formData.payment_method === 'visa' ? 'text-brand-gold' : ''}`} />
-                                    <span className="font-black uppercase text-[9px] tracking-widest">بطاقة ائتمان</span>
-                                </button>
-
-                                <button 
-                                    type="button"
-                                    disabled={isSubmitting}
                                     onClick={() => setFormData({...formData, payment_method: 'INSTAPAY'})}
                                     className={`flex flex-col items-center gap-3 py-6 px-4 rounded-[2rem] border-2 transition-all duration-500 ${formData.payment_method === 'INSTAPAY' ? 'border-brand-gold bg-brand-dark text-white' : 'border-brand-gray text-gray-400 bg-white hover:border-brand-gold/30'}`}
                                 >
@@ -228,7 +217,7 @@ const Checkout = () => {
 
                             {formData.payment_method === 'INSTAPAY' && (
                                 <div className="mt-6 p-6 bg-brand-gray/30 rounded-[2rem] border border-dashed border-brand-gold/30 animate-in fade-in duration-700">
-                                    <p className="text-[10px] font-bold text-brand-dark/70 mb-3 text-center uppercase tracking-widest">يرجى التحويل لـ: <span className="text-brand-dark block text-sm mt-1 select-all font-mono">youssefjan3@instapay</span></p>
+                                    <p className="text-[10px] font-bold text-brand-dark/70 mb-3 text-center uppercase tracking-widest">يرجى التحويل لـ: <span className="text-brand-dark block text-sm mt-1 select-all font-mono">youssefjan3@instapay / 01212846565</span></p>
                                     <div className="relative group">
                                         <input 
                                             type="file" accept="image/*"
@@ -296,7 +285,7 @@ const Checkout = () => {
                             
                             <button 
                                 onClick={handleCreateOrder}
-                                disabled={isSubmitting} // الجزء الجديد: تعطيل الزر عند الإرسال
+                                disabled={isSubmitting} 
                                 className={`w-full bg-brand-gold text-brand-dark py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] transition-all duration-500 flex items-center justify-center gap-3 shadow-xl group ${isSubmitting ? 'opacity-70 cursor-not-allowed' : 'hover:bg-white hover:scale-[1.02]'}`}
                             >
                                 {isSubmitting ? 'جاري معالجة طلبك...' : 'إتمام الطلب الآن'}

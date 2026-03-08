@@ -49,7 +49,7 @@ const Footer = () => {
       
       <div className="mt-20 pt-8 border-t border-white/5 text-center">
         <p className="text-[9px] text-gray-600 font-black uppercase tracking-[0.4em]">
-          © 2026 TRI JOLIE FAMILY WEAR. ALL RIGHTS RESERVED.
+          © 2026 TRES JOLIE FAMILY WEAR. ALL RIGHTS RESERVED.
         </p>
       </div>
     </footer>

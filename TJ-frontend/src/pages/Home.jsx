@@ -42,8 +42,8 @@ const Home = () => {
                     </div>
 
                     <h1 className="text-4xl md:text-7xl font-bold text-white mb-6 font-display italic tracking-tighter leading-tight">
-                        أناقة عائلتكم <br/> 
-                        <span className="text-brand-gold font-display not-italic">تبدأ بلمسة فرنسية</span>
+                       تري جولي <br/> 
+                        <span className="text-brand-gold font-display not-italic">بيت العيله</span>
                     </h1>
 
                     <p className="text-gray-500 text-[10px] md:text-[12px] mb-12 uppercase tracking-[0.6em] font-black italic">
@@ -74,7 +74,7 @@ const Home = () => {
             <section id="categories" className="py-32 max-w-7xl mx-auto px-6">
                 <div className="text-center mb-24">
                     <span className="text-brand-gold text-[10px] font-black uppercase tracking-[0.5em] mb-4 block">Our Legacy</span>
-                    <h2 className="text-3xl md:text-5xl font-bold font-display italic text-brand-dark uppercase tracking-tight">التصنيفات الراقية</h2>
+                    <h2 className="text-3xl md:text-5xl font-bold font-display italic text-brand-dark uppercase tracking-tight">الأقسام و المنتجات</h2>
                     <div className="w-20 h-[2px] bg-brand-gold mx-auto mt-8"></div>
                 </div>
 
@@ -130,7 +130,7 @@ const Home = () => {
 
             <footer className="py-16 border-t border-gray-50 text-center">
                 <p className="text-[10px] text-gray-300 font-bold uppercase tracking-[0.8em]">
-                    &copy; 2026 TRI JOLIE FAMILY WEAR. ALL RIGHTS RESERVED.
+                    &copy; 2026 TRES JOLIE FAMILY WEAR. ALL RIGHTS RESERVED.
                 </p>
             </footer>
         </div>

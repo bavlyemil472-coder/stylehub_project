@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useRef } from 'react';
 import api from '../services/api';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { formatImageUrl } from '../utils/helpers'; 
+
+
 
 const Cart = () => {
   const [items, setItems] = useState([]);
@@ -24,6 +26,7 @@ const Cart = () => {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     fetchCart();
