@@ -83,7 +83,7 @@ const Navbar = () => {
             <div className="relative">
               <img 
                 src={logo} 
-                alt="Tri Jolie" 
+                alt="Tres Jolie" 
                 className="w-10 h-10 rounded-full border border-brand-gold/30 p-0.5 object-cover" 
               />
               <div className="absolute inset-0 rounded-full bg-brand-gold/20 animate-ping opacity-20 group-hover:opacity-40"></div>
@@ -168,7 +168,7 @@ const Navbar = () => {
               )}
             </Link>
             <button onClick={() => setIsOpen(!isOpen)} className="text-white">
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 " />}
             </button>
           </div>
         </div>

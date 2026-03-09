@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 django = "*"
 djangorestframework = "*"
-djangorestframework-simplejwt = "*"
 requests = "*"
 django-cors-headers = "*"
 pillow = "*"
@@ -20,6 +19,7 @@ cloudinary = "*"
 django-cloudinary-storage = "*"
 tablib = {extras = ["xlsx"], version = "*"}
 django-jazzmin = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 

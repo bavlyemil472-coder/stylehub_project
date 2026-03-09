@@ -8,10 +8,18 @@
 
 }
 body {
+  body {
   font-family: 'Montserrat', sans-serif;
-  @apply bg-white text-brand-dark;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; 
+  @apply bg-white text-brand-dark antialiased;
+}
 }
 
 .font-display {
   font-family: 'Playfair Display', serif;
+}
+p {
+  line-height: 1.6;
 }
