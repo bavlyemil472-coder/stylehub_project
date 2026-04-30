@@ -12,10 +12,23 @@ class CategoryListCreateView(generics.ListCreateAPIView):
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
 
+# ✅ بعد — حطّ الكلام ده بدله
 class ProductListCreateView(generics.ListCreateAPIView):
-    queryset = product.objects.filter(is_available=True).prefetch_related('p_images', 'variants')
     serializer_class = ProductSerializer
     permission_classes = [IsAdminOrReadOnly]
+
+    def get_queryset(self):
+        queryset = product.objects.filter(is_available=True).prefetch_related('p_images', 'variants')
+        
+        category_id = self.request.query_params.get('category')
+        if category_id:
+            queryset = queryset.filter(category__id=category_id)
+        
+        search = self.request.query_params.get('search')
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        
+        return queryset
 
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = product.objects.all().prefetch_related('p_images', 'variants')
