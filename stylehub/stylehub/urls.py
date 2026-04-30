@@ -22,7 +22,10 @@ from rest_framework_simplejwt.views import (
 )
 from django.conf import settings
 from django.conf.urls.static import static
-
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
 urlpatterns = [
     path('admin/', admin.site.urls),
 

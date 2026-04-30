@@ -3,17 +3,34 @@ from .models import product, category, ProductVariant, ProductImage, Review
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = category
         fields = ('id', 'name', 'image', 'description')
 
+    def get_image(self, obj):
+        if obj.image:
+            return obj.image.url
+        return None
+
+
 class ProductImageSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductImage
         fields = ('id', 'image')
 
+    def get_image(self, obj):
+        if obj.image:
+            return obj.image.url
+        return None
+
+
 class ProductVariantSerializer(serializers.ModelSerializer):
     size_name = serializers.CharField(source='size.name', read_only=True)
+
     class Meta:
         model = ProductVariant
         fields = ('id', 'size_name', 'stock')
@@ -22,7 +39,8 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 class ColorVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = product
-        fields = ['id', 'color_name', 'color_hex'] 
+        fields = ['id', 'color_name', 'color_hex']
+
 
 class ReviewSerializer(serializers.ModelSerializer):
     user_name = serializers.ReadOnlyField(source='user.username')
@@ -31,7 +49,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'user_name', 'rating', 'comment', 'created_at']
 
+
 class ProductSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
     category = CategorySerializer(read_only=True)
     category_id = serializers.IntegerField(write_only=True)
     variants = ProductVariantSerializer(many=True, read_only=True)
@@ -39,16 +59,21 @@ class ProductSerializer(serializers.ModelSerializer):
     reviews = ReviewSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
-    
     other_colors = serializers.SerializerMethodField()
 
     class Meta:
         model = product
         fields = (
-            'id', 'name', 'description', 'price', 'image', 
+            'id', 'name', 'description', 'price', 'image',
             'is_available', 'created_at', 'category', 'category_id',
-            'variants', 'p_images', 'color_name', 'color_hex', 'other_colors', 'reviews', 'average_rating', 'review_count'
+            'variants', 'p_images', 'color_name', 'color_hex',
+            'other_colors', 'reviews', 'average_rating', 'review_count'
         )
+
+    def get_image(self, obj):
+        if obj.image:
+            return obj.image.url
+        return None
 
     def get_average_rating(self, obj):
         from django.db.models import Avg
@@ -65,7 +90,7 @@ class ProductSerializer(serializers.ModelSerializer):
             qs = siblings | parent
         else:
             qs = obj.color_variants.all()
-            
+
         return ColorVariantSerializer(qs, many=True).data
 
     def create(self, validated_data):
@@ -73,4 +98,3 @@ class ProductSerializer(serializers.ModelSerializer):
         if category_id:
             validated_data['category_id'] = category_id
         return super().create(validated_data)
-

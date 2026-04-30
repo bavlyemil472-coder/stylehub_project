@@ -31,37 +31,54 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://tresjolie-shop.com",
+    "https://www.tresjolie-shop.com",
+]
 
+CORS_ALLOW_CREDENTIALS = True
+SITE_ID = 1
 # -----------------------------------------
 # Media files
 # -----------------------------------------
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+#MEDIA_ROOT = '/var/www/stylehub/media'
 
 # -----------------------------------------
 # Static files
 # -----------------------------------------
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
+STATIC_ROOT = '/var/www/stylehub/static'
 # -----------------------------------------
 # Installed apps
 # -----------------------------------------
 INSTALLED_APPS = [
     'jazzmin',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'cloudinary_storage',
     'cloudinary',
+
     'rest_framework',
+'rest_framework.authtoken',
     'corsheaders',
     'django_rest_passwordreset',
     'import_export',
+
+'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
 
     # Your apps
     'accounts',
@@ -70,16 +87,39 @@ INSTALLED_APPS = [
     'orders',
 ]
 
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+	 HEAD
+            "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+            "secret":  os.getenv("GOOGLE_CLIENT_SECRET"),
+
+            "client_id":  os.getenv("GOOGLE_CLIENT_ID"),
+            "secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+	 75ef805 (temp save before rebase)
+            "key": ""
+        },
+'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
 # -----------------------------------------
 # Middleware
-# -----------------------------------------
+# ---------------------------------
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # cors must be above CommonMiddleware
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -169,10 +209,6 @@ AUTH_USER_MODEL = 'accounts.User'
 # -----------------------------------------
 # CORS
 # -----------------------------------------
-CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
-    "http://localhost:5173",
-])
-
 # -----------------------------------------
 # Email settings
 # -----------------------------------------
@@ -190,14 +226,17 @@ CLOUDINARY_STORAGE = {
     'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': env('CLOUDINARY_API_KEY'),
     'API_SECRET': env('CLOUDINARY_API_SECRET'),
+'SECURE': True
 }
 
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 # -----------------------------------------
 # Import Export
 # -----------------------------------------
 IMPORT_EXPORT_SKIP_ADMIN_LOG = True
 IMPORT_EXPORT_ENCODING = 'utf-8-sig'
-SITE_ID = 1
+
+
 
 # -----------------------------------------
 # Social Auth

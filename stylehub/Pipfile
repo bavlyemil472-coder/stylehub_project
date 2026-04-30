@@ -5,8 +5,16 @@ name = "pypi"
 
 [packages]
 djangorestframework-simplejwt = "*"
-django = "*"
-djangorestframework = "*"
+django-rest-passwordreset = "*"
+django-import-export = "*"
+mysqlclient = "*"
+pillow = "*"
+gunicorn = "*"
+dj-rest-auth = "*"
+django-allauth = "*"
+cryptography = "*"
+pyjwt = "*"
+openpyxl = "*"
 
 [dev-packages]
 
