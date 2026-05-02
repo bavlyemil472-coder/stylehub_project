@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.db.models import Sum, F
 from django.db.models.functions import TruncMonth
 import logging
+import json
 
 from .models import Order, OrderItem, ShippingRate
 from .serializers import OrderSerializer, ShippingRateSerializer
@@ -21,27 +22,41 @@ logger = logging.getLogger(__name__)
 
 
 class CreateOrderView(APIView):
-    permission_classes = [AllowAny]  # ✅ guest مسموح
+    permission_classes = [AllowAny]
 
     @transaction.atomic
     def post(self, request):
-        # ✅ لو مسجل دخول استخدم الـ user، لو guest استخدم None
         user = request.user if request.user.is_authenticated else None
 
-        # ✅ جلب السلة — للمسجل من DB، للـ guest من الـ session
         if user:
             cart = Cart.objects.filter(user=user).first()
             cart_items_data = list(cart.items.all()) if cart else []
         else:
-            # سلة الـ guest من الـ session
+            # ✅ جرب الـ session الأول
             session_cart = request.session.get('cart', {})
             cart_items_data = []
-            for variant_id, quantity in session_cart.items():
+
+            if session_cart:
+                for variant_id, quantity in session_cart.items():
+                    try:
+                        variant = ProductVariant.objects.get(id=int(variant_id))
+                        cart_items_data.append({'variant': variant, 'quantity': quantity})
+                    except ProductVariant.DoesNotExist:
+                        pass
+
+            # ✅ لو الـ session فاضية جرب الـ guest_cart من الـ request
+            if not cart_items_data:
+                guest_cart_raw = request.data.get('guest_cart', '[]')
                 try:
-                    variant = ProductVariant.objects.get(id=int(variant_id))
-                    cart_items_data.append({'variant': variant, 'quantity': quantity})
-                except ProductVariant.DoesNotExist:
-                    pass
+                    guest_cart = json.loads(guest_cart_raw)
+                    for item in guest_cart:
+                        try:
+                            variant = ProductVariant.objects.get(id=int(item['variant_id']))
+                            cart_items_data.append({'variant': variant, 'quantity': item['quantity']})
+                        except ProductVariant.DoesNotExist:
+                            pass
+                except Exception:
+                    cart_items_data = []
 
         if not cart_items_data:
             return Response({'error': 'السلة فارغة، لا يمكن إتمام الطلب.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -57,7 +72,7 @@ class CreateOrderView(APIView):
             return Response({'error': 'يرجى إكمال بيانات الشحن (الاسم، الهاتف، العنوان).'}, status=status.HTTP_400_BAD_REQUEST)
 
         order = Order.objects.create(
-            user=user,  # ✅ None للـ guest
+            user=user,
             full_name=full_name,
             phone=phone,
             address=address,
@@ -71,7 +86,6 @@ class CreateOrderView(APIView):
         total = 0
 
         for item in cart_items_data:
-            # item ممكن يكون CartItem object أو dict للـ guest
             if isinstance(item, dict):
                 variant = item['variant']
                 quantity = item['quantity']
@@ -101,14 +115,12 @@ class CreateOrderView(APIView):
         order.total_amount = total
         order.save()
 
-        # ✅ مسح السلة بعد الطلب
         if user and cart:
             cart.items.all().delete()
         else:
             request.session['cart'] = {}
             request.session.modified = True
 
-        # ✅ إرسال إيميل فقط لو مسجل دخول
         if user:
             try:
                 send_order_confirmation_email(order)
