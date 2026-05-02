@@ -21,44 +21,35 @@ import AdminDashboard from './pages/AdminDashboard';
 function App() {
   return (
     <Router>
-  <div className="flex flex-col min-h-screen bg-white">
-
-    <Navbar />
-    <Toaster position="top-center" reverseOrder={false} />
-
-    <main className="flex-grow">
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/product/:id" element={<ProductDetails />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        <Route path="/order-success" element={<OrderSuccess />} />
-        
-        
-        <Route 
-          path="/checkout" 
-          element={<ProtectedRoute><Checkout /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/orders" 
-          element={<ProtectedRoute><MyOrders /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/profile" 
-          element={<ProtectedRoute><Profile /></ProtectedRoute>} 
-        />
-      </Routes>
-    </main>
-
-    
-    <Footer />
-  </div>
-</Router>
+      <div className="flex flex-col min-h-screen bg-white">
+        <Navbar />
+        <Toaster position="top-center" reverseOrder={false} />
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/product/:id" element={<ProductDetails />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/order-success" element={<OrderSuccess />} />
+            <Route path="/checkout" element={<Checkout />} /> {/* ✅ بدون ProtectedRoute */}
+            <Route 
+              path="/orders" 
+              element={<ProtectedRoute><MyOrders /></ProtectedRoute>} 
+            />
+            <Route 
+              path="/profile" 
+              element={<ProtectedRoute><Profile /></ProtectedRoute>} 
+            />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
