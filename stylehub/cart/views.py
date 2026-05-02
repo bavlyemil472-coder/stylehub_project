@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -11,87 +11,105 @@ from .models import Cart, CartItem
 from .serializers import CartSerializer
 from products.models import ProductVariant
 
-def cleanup_expired_carts():
-    expiry_threshold = timezone.now() - timedelta(minutes=60)
-    expired_items = CartItem.objects.filter(cart__updated_at__lt=expiry_threshold)
-    
-    with transaction.atomic():
-        for item in expired_items:
-            variant = item.variant
-            variant.stock += item.quantity
-            variant.save()
-        expired_items.delete()
 
 class CartDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # ✅
 
     def get(self, request):
-        cleanup_expired_carts()  
-        cart, created = Cart.objects.get_or_create(user=request.user)
-        serializer = CartSerializer(cart, context={'request': request})
-        return Response(serializer.data)
+        if request.user.is_authenticated:
+            cart, _ = Cart.objects.get_or_create(user=request.user)
+            serializer = CartSerializer(cart, context={'request': request})
+            return Response(serializer.data)
+        else:
+            # ✅ Guest — بيرجع السلة من الـ session
+            session_cart = request.session.get('cart', {})
+            items = []
+            total = 0
+            for variant_id, quantity in session_cart.items():
+                try:
+                    variant = ProductVariant.objects.select_related('product', 'size').get(id=int(variant_id))
+                    item_total = float(variant.product.price) * quantity
+                    total += item_total
+                    items.append({
+                        'id': variant_id,
+                        'variant_id': variant.id,
+                        'product_name': variant.product.name,
+                        'size': variant.size.name,
+                        'price': float(variant.product.price),
+                        'quantity': quantity,
+                        'total_price': item_total,
+                        'image': variant.product.image.url if variant.product.image else '',
+                    })
+                except ProductVariant.DoesNotExist:
+                    pass
+            return Response({'items': items, 'total_cart_price': total})
+
 
 class AddToCartView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]  # ✅
 
     def post(self, request):
-        cleanup_expired_carts()  
         variant_id = request.data.get('variant_id')
         quantity = int(request.data.get('quantity', 1))
 
         if quantity <= 0:
             return Response({'error': 'Quantity must be greater than zero.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        with transaction.atomic():
-            variant = get_object_or_404(ProductVariant, id=variant_id)
+        variant = get_object_or_404(ProductVariant, id=variant_id)
 
-            if variant.stock < quantity:
-                return Response({'error': 'Not enough stock available.'}, status=status.HTTP_400_BAD_REQUEST)
+        if variant.stock < quantity:
+            return Response({'error': 'Not enough stock available.'}, status=status.HTTP_400_BAD_REQUEST)
 
-            cart, created = Cart.objects.get_or_create(user=request.user)
-            cart_item, item_created = CartItem.objects.get_or_create(cart=cart, variant=variant)
-
-            if not item_created:
-                cart_item.quantity += quantity
-            else:
-                cart_item.quantity = quantity
-
+        if request.user.is_authenticated:
+            with transaction.atomic():
+                cart, _ = Cart.objects.get_or_create(user=request.user)
+                cart_item, item_created = CartItem.objects.get_or_create(cart=cart, variant=variant)
+                if not item_created:
+                    cart_item.quantity += quantity
+                else:
+                    cart_item.quantity = quantity
+                variant.stock -= quantity
+                variant.save()
+                cart_item.save()
+                cart.save()
+        else:
+            # ✅ Guest — بيحفظ في الـ session
+            session_cart = request.session.get('cart', {})
+            key = str(variant_id)
+            session_cart[key] = session_cart.get(key, 0) + quantity
+            request.session['cart'] = session_cart
+            request.session.modified = True
             variant.stock -= quantity
             variant.save()
-            cart_item.save()
-            cart_item.cart.save() 
-        
-        return Response({'message': 'Product added and stock reserved.'}, status=status.HTTP_201_CREATED)
+
+        return Response({'message': 'Product added to cart.'}, status=status.HTTP_201_CREATED)
+
 
 class UpdateCartItemView(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request, item_id):
-        cleanup_expired_carts()  
         new_quantity = int(request.data.get('quantity', 0))
-
         if new_quantity <= 0:
             return Response({'error': 'Quantity must be greater than zero.'}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
             cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
             variant = cart_item.variant
-            
             diff = new_quantity - cart_item.quantity
-
             if diff > 0:
                 if variant.stock < diff:
-                    return Response({'error': 'Not enough stock for this update.'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'error': 'Not enough stock.'}, status=status.HTTP_400_BAD_REQUEST)
                 variant.stock -= diff
             elif diff < 0:
                 variant.stock += abs(diff)
-
             variant.save()
             cart_item.quantity = new_quantity
             cart_item.save()
-            cart_item.cart.save() 
+            cart_item.cart.save()
 
-        return Response({'message': 'Cart updated and stock adjusted.'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Cart updated.'}, status=status.HTTP_200_OK)
+
 
 class RemoveCartItemView(APIView):
     permission_classes = [IsAuthenticated]
@@ -100,12 +118,11 @@ class RemoveCartItemView(APIView):
         with transaction.atomic():
             cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
             variant = cart_item.variant
-            
             variant.stock += cart_item.quantity
             variant.save()
             cart_item.delete()
+        return Response({'message': 'Item removed.'}, status=status.HTTP_204_NO_CONTENT)
 
-        return Response({'message': 'Item removed and stock returned.'}, status=status.HTTP_204_NO_CONTENT)
 
 class ClearCartView(APIView):
     permission_classes = [IsAuthenticated]
@@ -118,5 +135,4 @@ class ClearCartView(APIView):
                 variant.stock += item.quantity
                 variant.save()
             cart.items.all().delete()
-
-        return Response({'message': 'Cart cleared and all stock returned.'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Cart cleared.'}, status=status.HTTP_204_NO_CONTENT)
