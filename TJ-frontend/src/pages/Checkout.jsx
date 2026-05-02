@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { ShoppingBag, Truck, CreditCard, Wallet, MapPin, User, Phone, ChevronRight, ShieldCheck, Camera } from 'lucide-react';
+import { ShoppingBag, Wallet, MapPin, User, Phone, ChevronRight, ShieldCheck, Camera } from 'lucide-react';
 import { formatImageUrl } from '../utils/helpers'; 
 
 const Checkout = () => {
@@ -10,9 +10,7 @@ const Checkout = () => {
     const [cart, setCart] = useState(null);
     const [shippingRates, setShippingRates] = useState([]);
     const [selectedShippingPrice, setSelectedShippingPrice] = useState(0);
-    
     const [screenshot, setScreenshot] = useState(null);
-    // الجزء الجديد: حالة لمنع تكرار الضغط
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -39,18 +37,11 @@ const Checkout = () => {
     const handleCityChange = (cityName) => {
         const rate = shippingRates.find(r => r.city_name === cityName);
         setFormData({ ...formData, city: cityName });
-        
-        if (rate) {
-            setSelectedShippingPrice(parseFloat(rate.price));
-        } else {
-            setSelectedShippingPrice(0);
-        }
+        setSelectedShippingPrice(rate ? parseFloat(rate.price) : 0);
     };
 
     const handleCreateOrder = async (e) => {
         if (e) e.preventDefault();
-        
-        // الجزء الجديد: منع تنفيذ الدالة إذا كان هناك طلب قيد المعالجة بالفعل
         if (isSubmitting) return;
 
         if (!formData.full_name || !formData.address || !formData.phone || !formData.city) {
@@ -78,6 +69,17 @@ const Checkout = () => {
             
             if (screenshot) {
                 dataToSend.append('payment_screenshot', screenshot);
+            }
+
+            // ✅ لو guest ابعت محتوى السلة مع الطلب مباشرة
+            const token = localStorage.getItem('access_token');
+            if (!token && cart?.items) {
+                dataToSend.append('guest_cart', JSON.stringify(
+                    cart.items.map(item => ({
+                        variant_id: item.variant_id || item.id,
+                        quantity: item.quantity
+                    }))
+                ));
             }
 
             const response = await api.post('/orders/create/', dataToSend, {
