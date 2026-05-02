@@ -13,7 +13,7 @@ from products.models import ProductVariant
 
 
 class CartDetailView(APIView):
-    permission_classes = [AllowAny]  # ✅
+    permission_classes = [AllowAny]
 
     def get(self, request):
         if request.user.is_authenticated:
@@ -21,7 +21,6 @@ class CartDetailView(APIView):
             serializer = CartSerializer(cart, context={'request': request})
             return Response(serializer.data)
         else:
-            # ✅ Guest — بيرجع السلة من الـ session
             session_cart = request.session.get('cart', {})
             items = []
             total = 0
@@ -46,7 +45,7 @@ class CartDetailView(APIView):
 
 
 class AddToCartView(APIView):
-    permission_classes = [AllowAny]  # ✅
+    permission_classes = [AllowAny]
 
     def post(self, request):
         variant_id = request.data.get('variant_id')
@@ -68,59 +67,77 @@ class AddToCartView(APIView):
                     cart_item.quantity += quantity
                 else:
                     cart_item.quantity = quantity
-                variant.stock -= quantity
+                variant.stock -= quantity  # ✅ المسجل بيخصم فوراً
                 variant.save()
                 cart_item.save()
                 cart.save()
         else:
-            # ✅ Guest — بيحفظ في الـ session
+            # ✅ Guest — بيحفظ في الـ session بس مش بيخصم من الـ stock
             session_cart = request.session.get('cart', {})
             key = str(variant_id)
             session_cart[key] = session_cart.get(key, 0) + quantity
             request.session['cart'] = session_cart
             request.session.modified = True
-            variant.stock -= quantity
-            variant.save()
+            # ❌ مش بنخصم من الـ stock للـ guest هنا
 
         return Response({'message': 'Product added to cart.'}, status=status.HTTP_201_CREATED)
 
 
 class UpdateCartItemView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def put(self, request, item_id):
         new_quantity = int(request.data.get('quantity', 0))
         if new_quantity <= 0:
             return Response({'error': 'Quantity must be greater than zero.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        with transaction.atomic():
-            cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-            variant = cart_item.variant
-            diff = new_quantity - cart_item.quantity
-            if diff > 0:
-                if variant.stock < diff:
-                    return Response({'error': 'Not enough stock.'}, status=status.HTTP_400_BAD_REQUEST)
-                variant.stock -= diff
-            elif diff < 0:
-                variant.stock += abs(diff)
-            variant.save()
-            cart_item.quantity = new_quantity
-            cart_item.save()
-            cart_item.cart.save()
+        if request.user.is_authenticated:
+            with transaction.atomic():
+                cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+                variant = cart_item.variant
+                diff = new_quantity - cart_item.quantity
+                if diff > 0:
+                    if variant.stock < diff:
+                        return Response({'error': 'Not enough stock.'}, status=status.HTTP_400_BAD_REQUEST)
+                    variant.stock -= diff
+                elif diff < 0:
+                    variant.stock += abs(diff)
+                variant.save()
+                cart_item.quantity = new_quantity
+                cart_item.save()
+                cart_item.cart.save()
+        else:
+            # ✅ Guest — بيعدل في الـ session بس مش بيعدل الـ stock
+            session_cart = request.session.get('cart', {})
+            key = str(item_id)
+            if key in session_cart:
+                session_cart[key] = new_quantity
+                request.session['cart'] = session_cart
+                request.session.modified = True
 
         return Response({'message': 'Cart updated.'}, status=status.HTTP_200_OK)
 
 
 class RemoveCartItemView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def delete(self, request, item_id):
-        with transaction.atomic():
-            cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
-            variant = cart_item.variant
-            variant.stock += cart_item.quantity
-            variant.save()
-            cart_item.delete()
+        if request.user.is_authenticated:
+            with transaction.atomic():
+                cart_item = get_object_or_404(CartItem, id=item_id, cart__user=request.user)
+                variant = cart_item.variant
+                variant.stock += cart_item.quantity  # ✅ المسجل بيرجع الـ stock
+                variant.save()
+                cart_item.delete()
+        else:
+            # ✅ Guest — بيحذف من الـ session بس مش بيرجع stock
+            session_cart = request.session.get('cart', {})
+            key = str(item_id)
+            if key in session_cart:
+                del session_cart[key]
+                request.session['cart'] = session_cart
+                request.session.modified = True
+
         return Response({'message': 'Item removed.'}, status=status.HTTP_204_NO_CONTENT)
 
 
