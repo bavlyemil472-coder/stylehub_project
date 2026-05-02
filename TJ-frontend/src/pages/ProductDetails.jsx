@@ -1,9 +1,9 @@
-import React, { useState, useEffect,useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { ShoppingCart, Plus, Minus, ArrowLeft, ShieldCheck, Truck, Star } from 'lucide-react';
-import { formatImageUrl } from '../utils/helpers'; 
+import { formatImageUrl } from '../utils/helpers';
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -12,32 +12,26 @@ const ProductDetail = () => {
   const [activeImage, setActiveImage] = useState('');
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [quantity, setQuantity] = useState(1);
-
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
-  useEffect(() => {
-
-  if (window.fbq && product) {
-
-    window.fbq('track', 'ViewContent', {
-      content_ids: [product.id],
-      content_type: 'product',
-      value: product.price,
-      currency: 'EGP'
-    });
-
-  }
-
-   }, [product]);
 
   useEffect(() => {
-    api.get(`/products/${id}/`) 
+    if (window.fbq && product) {
+      window.fbq('track', 'ViewContent', {
+        content_ids: [product.id],
+        content_type: 'product',
+        value: product.price,
+        currency: 'EGP'
+      });
+    }
+  }, [product]);
+
+  useEffect(() => {
+    api.get(`/products/${id}/`)
       .then(res => {
         setProduct(res.data);
-        setActiveImage(res.data.image); 
-        // اختيار أول مقاس متوفر تلقائياً عند التحميل
+        setActiveImage(res.data.image);
         if (res.data.variants && res.data.variants.length > 0) {
-          // نبحث عن أول مقاس مخزونه أكبر من 0 فعلياً
           const firstAvailable = res.data.variants.find(v => Number(v.stock) > 0);
           setSelectedVariant(firstAvailable || res.data.variants[0]);
         }
@@ -45,23 +39,16 @@ const ProductDetail = () => {
       .catch(() => toast.error("فشل في تحميل تفاصيل المنتج"));
   }, [id]);
 
+  // ✅ بدون إجبار لوجين
   const handleAddToCart = async () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      toast.error("يرجى تسجيل الدخول أولاً لإضافة المنتجات للسلة 🛍️");
-      navigate('/login');
+    if (!selectedVariant) {
+      toast.error("يرجى اختيار المقاس أولاً");
       return;
     }
 
-    if (!selectedVariant) {
-        toast.error("يرجى اختيار المقاس أولاً");
-        return;
-    }
-
-    // تأكيد إضافي قبل الإرسال للسيرفر بناءً على المخزون
     if (Number(selectedVariant.stock) <= 0) {
-        toast.error("عذراً، هذا المقاس غير متوفر حالياً");
-        return;
+      toast.error("عذراً، هذا المقاس غير متوفر حالياً");
+      return;
     }
 
     try {
@@ -69,7 +56,7 @@ const ProductDetail = () => {
         variant_id: selectedVariant.id,
         quantity: quantity
       });
-      
+
       toast.success(`${product.name} أضيف إلى سلتك`, {
         style: {
           border: '1px solid #D4AF37',
@@ -82,15 +69,10 @@ const ProductDetail = () => {
         },
         iconTheme: { primary: '#D4AF37', secondary: '#0B0B0B' },
       });
-      
+
       window.dispatchEvent(new Event('cartUpdated'));
     } catch (err) {
-      if (err.response?.status === 401) {
-        toast.error("يرجى تسجيل الدخول أولاً");
-        navigate('/login');
-      } else {
-        toast.error(err.response?.data?.error || "حدث خطأ أثناء الإضافة");
-      }
+      toast.error(err.response?.data?.error || "حدث خطأ أثناء الإضافة");
     }
   };
 
@@ -124,26 +106,26 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-white py-20 px-6">
       <div className="max-w-7xl mx-auto">
-        <button 
-          onClick={() => navigate(-1)} 
+        <button
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-gray-400 hover:text-brand-gold mb-12 text-[10px] font-black uppercase tracking-[0.2em] transition-all group"
         >
           <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" /> العودة للمتجر
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-          
+
           <div className="lg:col-span-7 space-y-6">
             <div className="bg-brand-gray/30 rounded-[3rem] overflow-hidden aspect-[4/5] relative group shadow-sm">
-                <img 
-                  src={formatImageUrl(activeImage)} 
-                  alt={product.name}
-                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
-                />
+              <img
+                src={formatImageUrl(activeImage)}
+                alt={product.name}
+                className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+              />
             </div>
 
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-2">
-              <button 
+              <button
                 onClick={() => setActiveImage(product.image)}
                 className={`w-20 h-24 rounded-2xl overflow-hidden flex-shrink-0 transition-all duration-300 border-2 ${activeImage === product.image ? 'border-brand-gold scale-95 shadow-lg' : 'border-transparent opacity-50'}`}
               >
@@ -151,7 +133,7 @@ const ProductDetail = () => {
               </button>
 
               {product.p_images && product.p_images.map((img) => (
-                <button 
+                <button
                   key={img.id}
                   onClick={() => setActiveImage(img.image)}
                   className={`w-20 h-24 rounded-2xl overflow-hidden flex-shrink-0 transition-all duration-300 border-2 ${activeImage === img.image ? 'border-brand-gold scale-95 shadow-lg' : 'border-transparent opacity-50'}`}
@@ -164,26 +146,25 @@ const ProductDetail = () => {
 
           <div className="lg:col-span-5 flex flex-col pt-4">
             <span className="text-brand-gold font-black uppercase tracking-[0.4em] text-[9px] mb-4">TRES JOLIE Premium</span>
-            
+
             <h1 className="text-4xl font-bold text-brand-dark italic font-display uppercase tracking-tighter mb-4 leading-tight">
               {product.name}
             </h1>
-            
+
             <div className="flex items-center gap-4 mb-8">
-                <p className="text-2xl font-bold text-brand-dark font-display italic">{product.price} EGP</p>
-                <div className="flex text-brand-gold items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className={`w-3 h-3 ${i < Math.round(product.average_rating || 5) ? 'fill-current' : 'text-gray-200'}`} />
-                    ))}
-                    <span className="text-[10px] text-gray-400 font-black ml-2">({product.review_count || 0})</span>
-                </div>
+              <p className="text-2xl font-bold text-brand-dark font-display italic">{product.price} EGP</p>
+              <div className="flex text-brand-gold items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className={`w-3 h-3 ${i < Math.round(product.average_rating || 5) ? 'fill-current' : 'text-gray-200'}`} />
+                ))}
+                <span className="text-[10px] text-gray-400 font-black ml-2">({product.review_count || 0})</span>
+              </div>
             </div>
 
             <p className="text-gray-500 text-[11px] leading-relaxed mb-8 font-medium italic">
               {product.description}
             </p>
 
-            {/* الألوان المتاحة */}
             {product.other_colors && product.other_colors.length > 0 && (
               <div className="mb-10 animate-in fade-in slide-in-from-bottom-2 duration-700">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-dark mb-5 flex items-center gap-2">
@@ -191,7 +172,7 @@ const ProductDetail = () => {
                 </h3>
                 <div className="flex flex-wrap gap-4">
                   <div className="relative group">
-                    <div 
+                    <div
                       className="w-10 h-10 rounded-full border-2 border-brand-gold p-1 shadow-lg shadow-brand-gold/20"
                       style={{ backgroundColor: product.color_hex }}
                     >
@@ -201,7 +182,7 @@ const ProductDetail = () => {
                   </div>
 
                   {product.other_colors.map((variant) => (
-                    <Link 
+                    <Link
                       key={variant.id}
                       to={`/product/${variant.id}`}
                       className="w-10 h-10 rounded-full border border-gray-100 p-1 hover:border-brand-gold hover:scale-110 transition-all duration-300 group relative"
@@ -214,7 +195,6 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {/* الجزء الجديد: قفل المقاسات المنتهية تماماً */}
             <div className="mb-10">
               <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-dark mb-5">المقاسات</h3>
               <div className="flex flex-wrap gap-3">
@@ -224,13 +204,13 @@ const ProductDetail = () => {
                     <button
                       key={v.id}
                       type="button"
-                      disabled={isOutOfStock} // قفل الزر برمجياً
+                      disabled={isOutOfStock}
                       onClick={() => !isOutOfStock && setSelectedVariant(v)}
                       className={`min-w-[60px] px-5 py-3 rounded-2xl font-bold text-[11px] uppercase tracking-widest transition-all duration-300 border-2 
-                        ${isOutOfStock 
-                          ? 'bg-gray-100 text-gray-300 border-gray-100 cursor-not-allowed opacity-50 pointer-events-none' 
-                          : selectedVariant?.id === v.id 
-                            ? 'border-brand-dark bg-brand-dark text-white shadow-xl' 
+                        ${isOutOfStock
+                          ? 'bg-gray-100 text-gray-300 border-gray-100 cursor-not-allowed opacity-50 pointer-events-none'
+                          : selectedVariant?.id === v.id
+                            ? 'border-brand-dark bg-brand-dark text-white shadow-xl'
                             : 'border-gray-100 text-gray-400 hover:border-brand-gold'
                         }`}
                     >
@@ -249,21 +229,20 @@ const ProductDetail = () => {
             <div className="space-y-6 mt-auto">
               <div className="flex items-center gap-6">
                 <div className="flex items-center border-2 border-gray-100 rounded-2xl px-3 py-2 bg-gray-50/50">
-                  <button onClick={() => setQuantity(q => Math.max(1, q-1))} className="p-2 hover:text-brand-gold"><Minus className="w-4 h-4" /></button>
+                  <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="p-2 hover:text-brand-gold"><Minus className="w-4 h-4" /></button>
                   <span className="px-8 font-black text-sm">{quantity}</span>
-                  <button onClick={() => setQuantity(q => q+1)} className="p-2 hover:text-brand-gold"><Plus className="w-4 h-4" /></button>
+                  <button onClick={() => setQuantity(q => q + 1)} className="p-2 hover:text-brand-gold"><Plus className="w-4 h-4" /></button>
                 </div>
-                
-                <button 
+
+                <button
                   onClick={handleAddToCart}
                   disabled={!selectedVariant || Number(selectedVariant?.stock) <= 0}
-                  className={`flex-1 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-700 shadow-2xl flex items-center justify-center gap-3 active:scale-95 ${
-                    (!selectedVariant || Number(selectedVariant?.stock) <= 0)
+                  className={`flex-1 py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-700 shadow-2xl flex items-center justify-center gap-3 active:scale-95 ${(!selectedVariant || Number(selectedVariant?.stock) <= 0)
                     ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
                     : 'bg-brand-dark text-white hover:bg-brand-gold hover:text-brand-dark shadow-brand-dark/20'
-                  }`}
+                    }`}
                 >
-                  <ShoppingCart className="w-4 h-4" /> 
+                  <ShoppingCart className="w-4 h-4" />
                   {(!selectedVariant || Number(selectedVariant?.stock) <= 0) ? 'غير متوفر' : 'أضف إلى السلة'}
                 </button>
               </div>
@@ -288,7 +267,6 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* التقييمات */}
         <div className="mt-32 border-t border-gray-100 pt-20">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
             <div className="lg:col-span-7">
@@ -325,8 +303,8 @@ const ProductDetail = () => {
                     <span className="block text-[9px] font-black uppercase tracking-widest mb-4 opacity-60">التقييم</span>
                     <div className="flex gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Star 
-                          key={star} 
+                        <Star
+                          key={star}
                           onClick={() => setRating(star)}
                           className={`w-6 h-6 cursor-pointer transition-all ${star <= rating ? 'fill-brand-gold text-brand-gold' : 'text-gray-600 hover:text-gray-400'}`}
                         />
@@ -335,7 +313,7 @@ const ProductDetail = () => {
                   </div>
                   <div>
                     <span className="block text-[9px] font-black uppercase tracking-widest mb-4 opacity-60">تعليقك</span>
-                    <textarea 
+                    <textarea
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                       required
@@ -343,8 +321,8 @@ const ProductDetail = () => {
                       placeholder="رأيك يهمنا"
                     />
                   </div>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="w-full bg-brand-gold text-brand-dark py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all active:scale-95"
                   >
                     إرسال التقييم
