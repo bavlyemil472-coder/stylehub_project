@@ -53,7 +53,6 @@ const ProductDetail = () => {
 
   const allImages = getAllImages();
 
-  // ✅ Auto-play كل 3 ثواني
   useEffect(() => {
     if (allImages.length <= 1 || lightbox) return;
     autoPlayRef.current = setInterval(() => {
@@ -95,7 +94,6 @@ const ProductDetail = () => {
     }
   };
 
-  // ✅ بدون check على الـ token
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -119,7 +117,6 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-white" dir="rtl">
 
-      {/* ✅ Lightbox */}
       {lightbox && (
         <div
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
@@ -159,7 +156,6 @@ const ProductDetail = () => {
         </div>
       )}
 
-      {/* Breadcrumb */}
       <div className="border-b border-gray-100 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-400">
           <button onClick={() => navigate('/shop')} className="hover:text-brand-dark transition-colors">المنتجات</button>
@@ -171,10 +167,9 @@ const ProductDetail = () => {
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
-          {/* الصور */}
           <div className="space-y-3">
             <div
-              className="relative overflow-hidden bg-gray-50 aspect-square cursor-zoom-in group"
+              className="relative overflow-hidden bg-gray-50 aspect-[3/4] cursor-zoom-in group" // ✅
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
               onClick={() => setLightbox(true)}
@@ -223,7 +218,7 @@ const ProductDetail = () => {
                   <button
                     key={i}
                     onClick={() => setActiveIndex(i)}
-                    className={`w-16 h-16 flex-shrink-0 overflow-hidden border-2 transition-all ${i === activeIndex ? 'border-brand-dark' : 'border-transparent opacity-50 hover:opacity-80'}`}
+                    className={`w-16 h-20 flex-shrink-0 overflow-hidden border-2 transition-all ${i === activeIndex ? 'border-brand-dark' : 'border-transparent opacity-50 hover:opacity-80'}`}
                   >
                     <img src={formatImageUrl(img.url)} className="w-full h-full object-cover" alt="" />
                   </button>
@@ -232,7 +227,6 @@ const ProductDetail = () => {
             )}
           </div>
 
-          {/* التفاصيل */}
           <div className="flex flex-col gap-5">
             <div>
               <h1 className="text-2xl font-bold text-brand-dark mb-3 leading-snug">{product.name}</h1>
@@ -339,7 +333,6 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        {/* التقييمات */}
         <div className="mt-16 border-t border-gray-100 pt-12">
           <h3 className="text-xl font-bold text-brand-dark mb-8">آراء العملاء ({product.review_count || 0})</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
