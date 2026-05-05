@@ -1,345 +1,310 @@
-import React, { useState, useEffect } from "react";
-import api from "../services/api";
-import {
-  DollarSign,
-  ShoppingBag,
-  Clock,
-  Activity,
-  ChevronLeft,
-  Image as ImageIcon,
-} from "lucide-react";
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status, generics
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+from django.db import transaction
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.db.models import Sum, F
+from django.db.models.functions import TruncMonth
+import logging
+import json
 
-import { Link } from "react-router-dom";
-import { formatImageUrl } from "../utils/helpers";
+from .models import Order, OrderItem, ShippingRate
+from .serializers import OrderSerializer, ShippingRateSerializer
+from cart.models import Cart, CartItem
+from products.models import ProductVariant
+from .payments import get_auth_token, create_payment_order, get_payment_key
 
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+logger = logging.getLogger(__name__)
 
-const AdminDashboard = () => {
-  const [stats, setStats] = useState(null);
-  const [orders, setOrders] = useState([]);
-  const [topProducts, setTopProducts] = useState([]);
-  const [salesData, setSalesData] = useState([]);
 
-  const [loading, setLoading] = useState(true);
-  const [updatingOrder, setUpdatingOrder] = useState(null);
+class CreateOrderView(APIView):
+    permission_classes = [AllowAny]
 
-  const fetchData = async () => {
-    try {
-      const token = localStorage.getItem("access_token");
+    @transaction.atomic
+    def post(self, request):
+        user = request.user if request.user.is_authenticated else None
 
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
+        if user:
+            cart = Cart.objects.filter(user=user).first()
+            cart_items_data = list(cart.items.all()) if cart else []
+        else:
+            session_cart = request.session.get('cart', {})
+            cart_items_data = []
 
-      const [statsRes, ordersRes, topProductsRes, salesRes] =
-        await Promise.all([
-          api.get("/admin/stats/", config),
-          api.get("/admin/orders/", config),
-          api.get("/admin/top-products/", config),
-          api.get("/admin/sales-chart/", config),
-        ]);
+            if session_cart:
+                for variant_id, quantity in session_cart.items():
+                    try:
+                        variant = ProductVariant.objects.get(id=int(variant_id))
+                        cart_items_data.append({'variant': variant, 'quantity': quantity})
+                    except ProductVariant.DoesNotExist:
+                        pass
 
-      const sortedOrders = ordersRes.data.sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-      );
+            if not cart_items_data:
+                guest_cart_raw = request.data.get('guest_cart', '[]')
+                try:
+                    guest_cart = json.loads(guest_cart_raw)
+                    for item in guest_cart:
+                        try:
+                            variant = ProductVariant.objects.get(id=int(item['variant_id']))
+                            cart_items_data.append({'variant': variant, 'quantity': item['quantity']})
+                        except ProductVariant.DoesNotExist:
+                            pass
+                except Exception:
+                    cart_items_data = []
 
-      setStats(statsRes.data);
-      setOrders(sortedOrders);
-      setTopProducts(topProductsRes.data);
-      setSalesData(salesRes.data);
-    } catch (err) {
-      console.error("Admin error", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        if not cart_items_data:
+            return Response({'error': 'السلة فارغة، لا يمكن إتمام الطلب.'}, status=status.HTTP_400_BAD_REQUEST)
 
-  useEffect(() => {
-    fetchData();
+        full_name = request.data.get('full_name')
+        phone = request.data.get('phone')
+        address = request.data.get('address')
+        city = request.data.get('city', 'Cairo')
+        payment_method = request.data.get('payment_method', 'cash')
+        payment_screenshot = request.FILES.get('payment_screenshot')
 
-    const interval = setInterval(() => {
-      fetchData();
-    }, 10000);
+        if not all([full_name, phone, address]):
+            return Response({'error': 'يرجى إكمال بيانات الشحن (الاسم، الهاتف، العنوان).'}, status=status.HTTP_400_BAD_REQUEST)
 
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleStatusChange = async (orderId, newStatus) => {
-    try {
-      setUpdatingOrder(orderId);
-
-      await api.patch(`/admin/orders/${orderId}/`, {
-        status: newStatus,
-      });
-
-      setOrders((prev) =>
-        prev.map((order) =>
-          order.id === orderId ? { ...order, status: newStatus } : order
+        order = Order.objects.create(
+            user=user,
+            full_name=full_name,
+            phone=phone,
+            address=address,
+            city=city,
+            payment_method=payment_method,
+            total_amount=0,
+            payment_status='unpaid' if payment_method == 'visa' else 'pending',
+            payment_screenshot=payment_screenshot
         )
-      );
-    } catch (err) {
-      alert("فشل تحديث الحالة");
-    } finally {
-      setUpdatingOrder(null);
-    }
-  };
 
-  if (loading)
-    return (
-      <div className="min-h-screen bg-brand-dark flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-brand-gold border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-400 text-sm">Loading Dashboard...</p>
-      </div>
-    );
+        total = 0
 
-  if (!stats)
-    return (
-      <div className="text-white text-center py-20">
-        عذراً، لا تملك صلاحية الدخول.
-      </div>
-    );
+        for item in cart_items_data:
+            if isinstance(item, dict):
+                variant = item['variant']
+                quantity = item['quantity']
+            else:
+                variant = item.variant
+                quantity = item.quantity
 
-  return (
-    <div className="min-h-screen bg-brand-dark py-20 px-6 lg:px-12 text-white">
-      <div className="max-w-7xl mx-auto">
-        <header className="flex justify-between items-center mb-16">
-          <div>
-            <h1 className="text-4xl font-bold font-display italic tracking-tight uppercase">
-              Dashboard <span className="text-brand-gold">.Control</span>
-            </h1>
+            if quantity > variant.stock:
+                transaction.set_rollback(True)
+                return Response({
+                    'error': f'المخزون غير كافٍ للمنتج {variant.product.name}. المتاح حالياً {variant.stock} فقط.'
+                }, status=status.HTTP_400_BAD_REQUEST)
 
-            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.4em] mt-2">
-              نظام إدارة المتجر المركزي
-            </p>
-          </div>
+            OrderItem.objects.create(
+                order=order,
+                variant=variant,
+                product_name=variant.product.name,
+                size=variant.size.name,
+                quantity=quantity,
+                price=variant.product.price
+            )
 
-          <Link
-            to="/shop"
-            className="flex items-center gap-2 text-[10px] font-black uppercase border border-white/10 px-6 py-3 rounded-full hover:bg-white hover:text-brand-dark transition-all"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            العودة للمتجر
-          </Link>
-        </header>
+            total += variant.product.price * quantity
+            variant.stock -= quantity
+            variant.save()
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-          <StatCard
-            title="إجمالي المبيعات"
-            value={`${stats.total_sales?.toLocaleString()} EGP`}
-            icon={<DollarSign className="w-6 h-6" />}
-            trend="+12%"
-            color="text-emerald-400"
-          />
+        # ✅ إضافة سعر الشحن للـ total
+        shipping_cost = 0
+        try:
+            shipping_rate = ShippingRate.objects.get(city_name=city)
+            shipping_cost = shipping_rate.price
+        except ShippingRate.DoesNotExist:
+            shipping_cost = 0
 
-          <StatCard
-            title="عدد الطلبات"
-            value={stats.total_orders}
-            icon={<ShoppingBag className="w-6 h-6" />}
-            trend="New"
-            color="text-blue-400"
-          />
+        order.total_amount = total + shipping_cost
+        order.save()
 
-          <StatCard
-            title="طلبات قيد الانتظار"
-            value={stats.pending_orders}
-            icon={<Clock className="w-6 h-6" />}
-            trend="Urgent"
-            color="text-brand-gold"
-          />
-        </div>
+        if user and cart:
+            cart.items.all().delete()
+        else:
+            request.session['cart'] = {}
+            request.session.modified = True
 
-        {/* Sales Chart */}
-        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 mb-16">
-          <h2 className="text-xl font-bold mb-8 italic">Sales Overview</h2>
+        if user:
+            try:
+                send_order_confirmation_email(order)
+            except Exception as e:
+                logger.error(f"Notification Error: {str(e)}")
 
-          {/* التعديل هنا: استخدام h-[300px] مباشر للـ Container لحل مشكلة التحذير */}
-          <div className="w-full h-[300px]">
-            <ResponsiveContainer width="99%" height="100%">
-              <LineChart data={salesData}>
-                <XAxis dataKey="month" stroke="#888" fontSize={12} />
-                <YAxis stroke="#888" fontSize={12} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="total_sales"
-                  stroke="#d4af37"
-                  strokeWidth={3}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        if payment_method == 'visa':
+            try:
+                auth_token = get_auth_token()
+                amount_cents = int(order.total_amount * 100)  # ✅ بيشمل الشحن
+                paymob_order_id = create_payment_order(auth_token, amount_cents)
 
-        {/* Orders Table */}
-        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-6 lg:p-10">
-          <h2 className="text-xl font-bold mb-8 flex items-center gap-3 italic">
-            <Activity className="text-brand-gold w-5 h-5" />
-            إدارة الطلبات الأخيرة ({orders.length})
-          </h2>
+                billing_data = {
+                    "email": user.email if user else "guest@guest.com",
+                    "first_name": full_name.split()[0] if full_name else "Guest",
+                    "last_name": full_name.split()[-1] if len(full_name.split()) > 1 else "User",
+                    "phone_number": phone,
+                    "country": "EG",
+                    "city": city,
+                    "street": address,
+                }
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-right">
-              <thead className="text-[10px] font-black uppercase text-gray-500 border-b border-white/10">
-                <tr>
-                  <th className="pb-4">رقم الطلب</th>
-                  <th className="pb-4">العميل</th>
-                  <th className="pb-4">الدفع</th>
-                  <th className="pb-4">المجموع</th>
-                  <th className="pb-4">الحالة</th>
-                  <th className="pb-4">تغيير الحالة</th>
-                </tr>
-              </thead>
+                payment_key = get_payment_key(auth_token, paymob_order_id, amount_cents, billing_data)
+                iframe_url = f"https://accept.paymob.com/api/acceptance/iframes/{settings.PAYMOB_IFRAME_ID}?payment_token={payment_key}"
 
-              <tbody className="divide-y divide-white/5">
-                {orders.map((order) => (
-                  <tr
-                    key={`order-${order.id}`}
-                    className="group hover:bg-white/[0.02] transition-colors"
-                  >
-                    <td className="py-5 font-mono text-xs">
-                      #{order.id.toString().padStart(4, "0")}
-                    </td>
+                return Response({"id": order.id, "payment_url": iframe_url}, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                return Response({
+                    "id": order.id,
+                    "warning": "فشل إنشاء رابط الدفع",
+                    "error_details": str(e)
+                }, status=status.HTTP_201_CREATED)
 
-                    <td className="py-5">
-                      <p className="text-sm font-bold uppercase">
-                        {order.full_name || "عميل مجهول"}
-                      </p>
-                      <p className="text-[9px] text-gray-500">{order.phone}</p>
-                    </td>
+        serializer = OrderSerializer(order)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-                    <td className="py-5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase">
-                          {order.payment_method}
-                        </span>
 
-                        {order.payment_screenshot && (
-                          <a
-                            href={formatImageUrl(order.payment_screenshot)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-brand-gold hover:text-white transition-colors"
-                          >
-                            <ImageIcon className="w-4 h-4" />
-                          </a>
-                        )}
-                      </div>
-                    </td>
+class MyOrdersView(APIView):
+    permission_classes = [IsAuthenticated]
 
-                    <td className="py-5 text-sm text-brand-gold font-bold">
-                      {order.total_amount?.toLocaleString()} EGP
-                    </td>
+    def get(self, request):
+        orders = Order.objects.filter(user=request.user).order_by("-created_at")
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
 
-                    <td className="py-5">
-                      <span
-                        className={`px-3 py-1 rounded-full text-[9px] font-black uppercase
-                        ${
-                          order.status === "delivered"
-                            ? "bg-emerald-500/10 text-emerald-400"
-                            : order.status === "cancelled"
-                            ? "bg-red-500/10 text-red-400"
-                            : "bg-brand-gold/10 text-brand-gold"
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                    </td>
 
-                    <td className="py-5">
-                      <select
-                        disabled={updatingOrder === order.id}
-                        className="bg-brand-dark border border-white/10 rounded-lg text-[10px] p-2 focus:outline-none focus:border-brand-gold cursor-pointer"
-                        value={order.status}
-                        onChange={(e) =>
-                          handleStatusChange(order.id, e.target.value)
-                        }
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+class StartPaymentView(APIView):
+    permission_classes = [IsAuthenticated]
 
-        {/* Top Products */}
-        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 mt-10">
-          <h2 className="text-xl font-bold mb-8 italic">
-            Top Selling Products
-          </h2>
+    def post(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id, user=request.user)
+        amount_cents = int(order.total_amount * 100)
 
-          <div className="space-y-4">
-            {topProducts.map((product) => (
-              <div
-                key={`top-prod-${product.id || product.product_name}`}
-                className="flex items-center justify-between border-b border-white/10 pb-4"
-              >
-                <div className="flex items-center gap-4">
-                   <img
-                    src={product.image ? formatImageUrl(product.image) : "https://placehold.co/100x100?text=No+Image"}
-                    className="w-12 h-12 rounded-lg object-cover bg-white/5"
-                    alt={product.product_name}
-                    onError={(e) => { e.target.src = "https://placehold.co/100x100?text=Error"; }}
-                  />
-                  <div>
-                    <p className="font-bold">{product.product_name || product.name}</p>
-                    <p className="text-xs text-gray-400">
-                      {product.total_sold || product.sales} orders
-                    </p>
-                  </div>
-                </div>
+        try:
+            auth_token = get_auth_token()
+            paymob_order_id = create_payment_order(auth_token, amount_cents)
 
-                <p className="text-brand-gold font-bold">
-                  {product.revenue || product.price} EGP
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+            billing_data = {
+                "email": request.user.email,
+                "first_name": order.full_name.split()[0] if order.full_name else request.user.username,
+                "last_name": order.full_name.split()[-1] if len(order.full_name.split()) > 1 else "User",
+                "phone_number": order.phone,
+                "country": "EG",
+                "city": order.city,
+                "street": order.address,
+                "building": "NA", "floor": "NA", "apartment": "NA",
+            }
 
-const StatCard = ({ title, value, icon, color, trend }) => (
-  <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 hover:bg-white/[0.08] transition-all group">
-    <div className="flex justify-between items-start mb-8">
-      <div
-        className={`p-4 rounded-2xl bg-white/5 ${color} group-hover:scale-110 transition-transform`}
-      >
-        {icon}
-      </div>
+            payment_key = get_payment_key(auth_token, paymob_order_id, amount_cents, billing_data)
+            iframe_url = f"https://accept.paymob.com/api/acceptance/iframes/{settings.PAYMOB_IFRAME_ID}?payment_token={payment_key}"
 
-      <span className="text-[10px] font-black bg-white/10 px-3 py-1 rounded-full uppercase tracking-tighter">
-        {trend}
-      </span>
-    </div>
+            return Response({"payment_url": iframe_url})
+        except Exception as e:
+            logger.error(f"Paymob error: {str(e)}")
+            return Response({"error": "فشل الاتصال بخدمة الدفع"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    <h3 className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2">
-      {title}
-    </h3>
 
-    <p className="text-3xl font-bold font-display italic tracking-tight text-white">
-      {value}
-    </p>
-  </div>
-);
+@csrf_exempt
+def paymob_webhook(request):
+    try:
+        data = request.POST or request.GET
+        if data.get("success") == "true":
+            order_id = data.get("merchant_order_id")
+            order = Order.objects.filter(id=order_id).first()
+            if order:
+                order.payment_status = "paid"
+                order.transaction_id = data.get("id")
+                order.status = "processing"
+                order.save()
+        return JsonResponse({"status": "ok"})
+    except Exception as e:
+        logger.error(f"Webhook error: {str(e)}")
+        return JsonResponse({"error": "webhook failed"}, status=500)
 
-export default AdminDashboard;
+
+class ShippingRateListView(generics.ListAPIView):
+    queryset = ShippingRate.objects.all()
+    serializer_class = ShippingRateSerializer
+    permission_classes = []
+
+
+class AdminDashboardStatsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        total_sales = Order.objects.filter(status="delivered").aggregate(total=Sum("total_amount"))["total"] or 0
+        return Response({
+            "total_sales": total_sales,
+            "total_orders": Order.objects.count(),
+            "pending_orders": Order.objects.filter(status="pending").count(),
+        })
+
+
+class AdminOrderListView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        try:
+            orders = Order.objects.all().order_by("-created_at")
+            serializer = OrderSerializer(orders, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            logger.error(f"AdminOrderList GET error: {str(e)}")
+            return Response({"error": "حدث خطأ"}, status=500)
+
+    def patch(self, request, pk):
+        try:
+            order = Order.objects.get(pk=pk)
+            new_status = request.data.get("status")
+            if not new_status:
+                return Response({"error": "No status provided"}, status=400)
+            order.status = new_status
+            order.save()
+            return Response({"status": "updated"})
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found"}, status=404)
+        except Exception as e:
+            logger.error(f"AdminOrderList PATCH error: {str(e)}")
+            return Response({"error": "server error"}, status=500)
+
+
+class AdminTopProductsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        top_products = (
+            OrderItem.objects.values("product_name")
+            .annotate(total_sold=Sum("quantity"), revenue=Sum(F("quantity") * F("price")))
+            .order_by("-total_sold")[:10]
+        )
+        return Response(top_products)
+
+
+class AdminSalesChartView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        sales = (
+            Order.objects.filter(status="delivered")
+            .annotate(month=TruncMonth("created_at"))
+            .values("month")
+            .annotate(total_sales=Sum("total_amount"))
+            .order_by("month")
+        )
+        return Response([{"month": s["month"].strftime("%Y-%m"), "total_sales": s["total_sales"]} for s in sales])
+
+
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+
+def send_order_confirmation_email(order):
+    subject = f'تأكيد طلبك من Tres Jolie - أوردر رقم #{order.id}'
+    context = {'order': order}
+    html_message = render_to_string('emails/order_confirmation.html', context)
+    plain_message = f"أهلاً {order.full_name}، تم استلام طلبك بنجاح. الإجمالي: {order.total_amount} ج.م"
+    send_mail(
+        subject, plain_message,
+        'Tres Jolie <your-email@gmail.com>',
+        [order.user.email],
+        html_message=html_message,
+    )
