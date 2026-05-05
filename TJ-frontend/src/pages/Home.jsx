@@ -123,7 +123,7 @@ const Home = () => {
             <section className="py-32 bg-brand-gray/20">
                 <div className="max-w-4xl mx-auto text-center px-6">
                     <p className="text-brand-dark/40 text-4xl md:text-6xl font-display italic leading-snug">
-                        "الجودة ليست مجرد فعل، بل هي عادة نغزلها في كل قطعة."
+                        "الجودة ليست مجرد فعل، بل هي عادة نغزلها في كل قطعة تري جولي خبره اكثر من 30 عام . "
                     </p>
                 </div>
             </section>
