@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { ShoppingCart, Plus, Minus, ChevronLeft, ChevronRight, ShieldCheck, Truck, Star } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, ChevronLeft, ChevronRight, ShieldCheck, Truck, Star, X, ZoomIn } from 'lucide-react';
 import { formatImageUrl } from '../utils/helpers';
 
 const ProductDetail = () => {
@@ -14,7 +14,9 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
+  const [lightbox, setLightbox] = useState(false);
   const touchStartX = useRef(null);
+  const autoPlayRef = useRef(null);
 
   useEffect(() => {
     if (window.fbq && product) {
@@ -51,8 +53,24 @@ const ProductDetail = () => {
 
   const allImages = getAllImages();
 
-  const prevImage = () => setActiveIndex(i => (i === 0 ? allImages.length - 1 : i - 1));
-  const nextImage = () => setActiveIndex(i => (i === allImages.length - 1 ? 0 : i + 1));
+  // ✅ Auto-play كل 3 ثواني
+  useEffect(() => {
+    if (allImages.length <= 1 || lightbox) return;
+    autoPlayRef.current = setInterval(() => {
+      setActiveIndex(i => (i === allImages.length - 1 ? 0 : i + 1));
+    }, 3000);
+    return () => clearInterval(autoPlayRef.current);
+  }, [allImages.length, lightbox, product]);
+
+  const prevImage = () => {
+    clearInterval(autoPlayRef.current);
+    setActiveIndex(i => (i === 0 ? allImages.length - 1 : i - 1));
+  };
+
+  const nextImage = () => {
+    clearInterval(autoPlayRef.current);
+    setActiveIndex(i => (i === allImages.length - 1 ? 0 : i + 1));
+  };
 
   const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchEnd = (e) => {
@@ -77,10 +95,9 @@ const ProductDetail = () => {
     }
   };
 
+  // ✅ بدون check على الـ token
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('access_token');
-    if (!token) { toast.error("يجب تسجيل الدخول لإضافة تقييم"); navigate('/login'); return; }
     try {
       await api.post(`/products/${id}/add-review/`, { rating, comment });
       toast.success("تم إضافة تقييمك بنجاح");
@@ -101,6 +118,47 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen bg-white" dir="rtl">
+
+      {/* ✅ Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+          onClick={() => setLightbox(false)}
+        >
+          <button className="absolute top-4 right-4 text-white hover:text-brand-gold transition-colors z-10" onClick={() => setLightbox(false)}>
+            <X className="w-8 h-8" />
+          </button>
+
+          {allImages.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 w-12 h-12 flex items-center justify-center transition-all rounded-full"
+              >
+                <ChevronRight className="w-6 h-6 text-white" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 w-12 h-12 flex items-center justify-center transition-all rounded-full"
+              >
+                <ChevronLeft className="w-6 h-6 text-white" />
+              </button>
+            </>
+          )}
+
+          <img
+            src={formatImageUrl(allImages[activeIndex]?.url)}
+            alt={product.name}
+            className="max-h-[90vh] max-w-[90vw] object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
+            {activeIndex + 1} / {allImages.length}
+          </div>
+        </div>
+      )}
+
       {/* Breadcrumb */}
       <div className="border-b border-gray-100 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-400">
@@ -112,42 +170,46 @@ const ProductDetail = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          
+
           {/* الصور */}
           <div className="space-y-3">
-            {/* الصورة الرئيسية مع السهام */}
-            <div 
-              className="relative overflow-hidden bg-gray-50 aspect-square"
+            <div
+              className="relative overflow-hidden bg-gray-50 aspect-square cursor-zoom-in group"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
+              onClick={() => setLightbox(true)}
             >
               <img
                 src={formatImageUrl(allImages[activeIndex]?.url)}
                 alt={product.name}
-                className="w-full h-full object-cover transition-opacity duration-300"
+                className="w-full h-full object-cover transition-opacity duration-500"
               />
-              {/* سهام التنقل */}
+
+              <div className="absolute top-3 left-3 bg-white/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                <ZoomIn className="w-4 h-4 text-brand-dark" />
+              </div>
+
               {allImages.length > 1 && (
                 <>
                   <button
-                    onClick={prevImage}
+                    onClick={(e) => { e.stopPropagation(); prevImage(); }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white w-10 h-10 flex items-center justify-center shadow-md transition-all"
                   >
                     <ChevronRight className="w-5 h-5 text-brand-dark" />
                   </button>
                   <button
-                    onClick={nextImage}
+                    onClick={(e) => { e.stopPropagation(); nextImage(); }}
                     className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white w-10 h-10 flex items-center justify-center shadow-md transition-all"
                   >
                     <ChevronLeft className="w-5 h-5 text-brand-dark" />
                   </button>
-                  {/* نقاط */}
+
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                     {allImages.map((_, i) => (
                       <button
                         key={i}
-                        onClick={() => setActiveIndex(i)}
-                        className={`w-2 h-2 rounded-full transition-all ${i === activeIndex ? 'bg-brand-gold w-4' : 'bg-white/60'}`}
+                        onClick={(e) => { e.stopPropagation(); setActiveIndex(i); }}
+                        className={`h-2 rounded-full transition-all duration-300 ${i === activeIndex ? 'bg-brand-gold w-5' : 'bg-white/60 w-2'}`}
                       />
                     ))}
                   </div>
@@ -155,7 +217,6 @@ const ProductDetail = () => {
               )}
             </div>
 
-            {/* Thumbnails */}
             {allImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {allImages.map((img, i) => (
@@ -173,7 +234,6 @@ const ProductDetail = () => {
 
           {/* التفاصيل */}
           <div className="flex flex-col gap-5">
-            
             <div>
               <h1 className="text-2xl font-bold text-brand-dark mb-3 leading-snug">{product.name}</h1>
               <div className="flex items-center gap-4">
@@ -191,7 +251,6 @@ const ProductDetail = () => {
 
             <hr className="border-gray-100" />
 
-            {/* الألوان */}
             {product.other_colors && product.other_colors.length > 0 && (
               <div>
                 <p className="text-sm font-bold text-brand-dark mb-3">اللون</p>
@@ -207,7 +266,6 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {/* المقاسات */}
             <div>
               <div className="flex justify-between items-center mb-3">
                 <p className="text-sm font-bold text-brand-dark">المقاس</p>
@@ -220,10 +278,10 @@ const ProductDetail = () => {
                     <button key={v.id} type="button" disabled={isOutOfStock}
                       onClick={() => !isOutOfStock && setSelectedVariant(v)}
                       className={`min-w-[52px] h-12 px-3 border text-sm font-medium transition-all
-                        ${isOutOfStock 
-                          ? 'border-gray-100 text-gray-300 cursor-not-allowed line-through' 
-                          : selectedVariant?.id === v.id 
-                            ? 'border-brand-dark bg-brand-dark text-white' 
+                        ${isOutOfStock
+                          ? 'border-gray-100 text-gray-300 cursor-not-allowed line-through'
+                          : selectedVariant?.id === v.id
+                            ? 'border-brand-dark bg-brand-dark text-white'
                             : 'border-gray-200 text-brand-dark hover:border-brand-dark'
                         }`}
                     >
@@ -234,7 +292,6 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* الكمية والسلة */}
             <div className="flex gap-3">
               <div className="flex items-center border border-gray-200">
                 <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-3 hover:bg-gray-50 text-lg">−</button>
@@ -256,7 +313,6 @@ const ProductDetail = () => {
               </button>
             </div>
 
-            {/* الوصف */}
             {product.description && (
               <div className="border-t border-gray-100 pt-5">
                 <p className="text-sm font-bold text-brand-dark mb-2">وصف المنتج</p>
@@ -264,7 +320,6 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {/* الشحن والضمان */}
             <div className="border border-gray-100 p-4 grid grid-cols-2 gap-4">
               <div className="flex items-center gap-3">
                 <Truck className="w-5 h-5 text-brand-gold flex-shrink-0" />
@@ -294,7 +349,7 @@ const ProductDetail = () => {
                   <div key={rev.id} className="border-b border-gray-100 pb-6">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="text-sm font-bold text-brand-dark">{rev.user_name}</p>
+                        <p className="text-sm font-bold text-brand-dark">{rev.user_name || 'زائر'}</p>
                         <div className="flex text-brand-gold mt-1">
                           {[...Array(5)].map((_, i) => (
                             <Star key={i} className={`w-3 h-3 ${i < rev.rating ? 'fill-current' : 'text-gray-200'}`} />
