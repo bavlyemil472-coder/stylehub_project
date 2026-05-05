@@ -41,7 +41,6 @@ const Shop = () => {
 
     return (
         <div className="min-h-screen bg-white" dir="rtl">
-            {/* Header */}
             <div className="px-6 py-8 border-b border-gray-100">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div>
@@ -70,24 +69,21 @@ const Shop = () => {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10">
                         {products.map(product => (
                             <div key={product.id} className="group flex flex-col">
-                                {/* صورة المنتج */}
                                 <Link to={`/product/${product.id}`} className="relative overflow-hidden bg-gray-50 block mb-3">
-                                    <div className="aspect-square">
+                                    <div className="aspect-[3/4]"> {/* ✅ */}
                                         <img 
                                             src={formatImageUrl(product.image)} 
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                                             alt={product.name}
-                                            onError={(e) => { e.target.src = 'https://via.placeholder.com/400x400'; }}
+                                            onError={(e) => { e.target.src = 'https://via.placeholder.com/400x500'; }}
                                         />
                                     </div>
-                                    {/* زرار سلة عند الهوفر */}
                                     <div className="absolute bottom-0 left-0 right-0 bg-brand-dark/90 text-white text-center py-3 text-sm font-bold translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center gap-2">
                                         <ShoppingBag className="w-4 h-4" />
                                         أضف للسلة
                                     </div>
                                 </Link>
 
-                                {/* تفاصيل المنتج */}
                                 <Link to={`/product/${product.id}`} className="flex flex-col flex-1">
                                     <h3 className="text-brand-dark text-base font-semibold mb-1 leading-snug line-clamp-2">
                                         {product.name}
