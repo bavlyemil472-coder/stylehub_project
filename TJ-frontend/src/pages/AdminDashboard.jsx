@@ -118,6 +118,7 @@ const AdminDashboard = () => {
             </div>
 
             <div className="space-y-4">
+              {/* بيانات العميل */}
               <div className="bg-white/5 rounded-xl p-4">
                 <p className="text-xs text-gray-400 mb-3 uppercase tracking-wider">بيانات العميل</p>
                 <p className="font-bold text-lg">{selectedOrder.full_name}</p>
@@ -125,21 +126,39 @@ const AdminDashboard = () => {
                 <p className="text-gray-400 text-sm mt-1">{selectedOrder.address} - {selectedOrder.city}</p>
               </div>
 
+              {/* المنتجات مع الصور ✅ */}
               <div className="bg-white/5 rounded-xl p-4">
                 <p className="text-xs text-gray-400 mb-3 uppercase tracking-wider">المنتجات</p>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {selectedOrder.items?.map((item, i) => (
-                    <div key={i} className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">{item.product_name}</p>
+                    <div key={i} className="flex items-center gap-3">
+                      {/* صورة المنتج */}
+                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-white/5 flex-shrink-0 border border-white/10">
+                        {item.image ? (
+                          <img
+                            src={formatImageUrl(item.image)}
+                            alt={item.product_name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="w-6 h-6 text-gray-600" />
+                          </div>
+                        )}
+                      </div>
+                      {/* التفاصيل */}
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{item.product_name}</p>
                         <p className="text-xs text-gray-400">مقاس: {item.size} × {item.quantity}</p>
                       </div>
-                      <p className="text-brand-gold font-bold">{(item.price * item.quantity).toLocaleString()} EGP</p>
+                      <p className="text-brand-gold font-bold text-sm">{(item.price * item.quantity).toLocaleString()} EGP</p>
                     </div>
                   ))}
                 </div>
               </div>
 
+              {/* الدفع والإجمالي */}
               <div className="bg-white/5 rounded-xl p-4 flex justify-between items-center">
                 <div>
                   <p className="text-xs text-gray-400">طريقة الدفع</p>
@@ -151,6 +170,7 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
+              {/* إيصال الدفع */}
               {selectedOrder.payment_screenshot && (
                 <a href={formatImageUrl(selectedOrder.payment_screenshot)} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 text-brand-gold hover:underline text-sm">
@@ -158,6 +178,7 @@ const AdminDashboard = () => {
                 </a>
               )}
 
+              {/* تغيير الحالة */}
               <div>
                 <p className="text-xs text-gray-400 mb-2">تغيير الحالة</p>
                 <select
@@ -238,7 +259,6 @@ const AdminDashboard = () => {
             </h2>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-              {/* بحث */}
               <div className="relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -250,7 +270,6 @@ const AdminDashboard = () => {
                 />
               </div>
 
-              {/* فلتر الحالة */}
               <select
                 value={filterStatus}
                 onChange={e => setFilterStatus(e.target.value)}
@@ -264,7 +283,6 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Orders List */}
           <div className="space-y-3">
             {filteredOrders.length === 0 ? (
               <p className="text-gray-400 text-sm text-center py-8">لا توجد طلبات</p>
@@ -275,9 +293,25 @@ const AdminDashboard = () => {
                   className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/5 hover:border-white/10 transition-all cursor-pointer"
                   onClick={() => setSelectedOrder(order)}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-brand-gold/10 rounded-xl flex items-center justify-center">
-                      <Package className="w-5 h-5 text-brand-gold" />
+                  {/* صور المنتجات في قائمة الطلبات ✅ */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex -space-x-2 rtl:space-x-reverse">
+                      {order.items?.slice(0, 3).map((item, i) => (
+                        <div key={i} className="w-10 h-10 rounded-lg overflow-hidden border-2 border-[#0a0a0a] bg-white/5 flex-shrink-0">
+                          {item.image ? (
+                            <img src={formatImageUrl(item.image)} alt={item.product_name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="w-4 h-4 text-gray-600" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {order.items?.length > 3 && (
+                        <div className="w-10 h-10 rounded-lg bg-white/10 border-2 border-[#0a0a0a] flex items-center justify-center text-xs font-bold text-gray-400">
+                          +{order.items.length - 3}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <p className="font-bold">{order.full_name || 'عميل'}</p>
@@ -289,9 +323,7 @@ const AdminDashboard = () => {
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${STATUS_LABELS[order.status]?.color || 'text-gray-400 bg-gray-400/10'}`}>
                       {STATUS_LABELS[order.status]?.label || order.status}
                     </span>
-
                     <p className="text-brand-gold font-bold text-sm">{order.total_amount?.toLocaleString()} EGP</p>
-
                     <select
                       className="bg-[#0a0a0a] border border-white/10 rounded-lg text-xs p-2 focus:outline-none focus:border-brand-gold"
                       value={order.status}
