@@ -1,18 +1,41 @@
 from rest_framework import serializers
-from .models import product, category, ProductVariant, ProductImage, Review
+from .models import product, Category, Section, SubCategory, ProductVariant, ProductImage, Review
+
+
+class SubCategorySerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SubCategory
+        fields = ('id', 'name', 'image', 'description')
+
+    def get_image(self, obj):
+        return obj.image.url if obj.image else None
 
 
 class CategorySerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
+    subcategories = SubCategorySerializer(many=True, read_only=True)
+    section_name = serializers.CharField(source='section.name', read_only=True)
 
     class Meta:
-        model = category
-        fields = ('id', 'name', 'image', 'description')
+        model = Category
+        fields = ('id', 'name', 'image', 'description', 'section_name', 'subcategories')
 
     def get_image(self, obj):
-        if obj.image:
-            return obj.image.url
-        return None
+        return obj.image.url if obj.image else None
+
+
+class SectionSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    categories = CategorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Section
+        fields = ('id', 'name', 'image', 'description', 'categories')
+
+    def get_image(self, obj):
+        return obj.image.url if obj.image else None
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -23,9 +46,7 @@ class ProductImageSerializer(serializers.ModelSerializer):
         fields = ('id', 'image')
 
     def get_image(self, obj):
-        if obj.image:
-            return obj.image.url
-        return None
+        return obj.image.url if obj.image else None
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -53,7 +74,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     category = CategorySerializer(read_only=True)
-    category_id = serializers.IntegerField(write_only=True)
+    category_id = serializers.IntegerField(write_only=True, required=False)
+    subcategory = SubCategorySerializer(read_only=True)
+    subcategory_id = serializers.IntegerField(write_only=True, required=False)
     variants = ProductVariantSerializer(many=True, read_only=True)
     p_images = ProductImageSerializer(many=True, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
@@ -65,15 +88,15 @@ class ProductSerializer(serializers.ModelSerializer):
         model = product
         fields = (
             'id', 'name', 'description', 'price', 'image',
-            'is_available', 'created_at', 'category', 'category_id',
+            'is_available', 'created_at',
+            'category', 'category_id',
+            'subcategory', 'subcategory_id',
             'variants', 'p_images', 'color_name', 'color_hex',
             'other_colors', 'reviews', 'average_rating', 'review_count'
         )
 
     def get_image(self, obj):
-        if obj.image:
-            return obj.image.url
-        return None
+        return obj.image.url if obj.image else None
 
     def get_average_rating(self, obj):
         from django.db.models import Avg
@@ -90,11 +113,13 @@ class ProductSerializer(serializers.ModelSerializer):
             qs = siblings | parent
         else:
             qs = obj.color_variants.all()
-
         return ColorVariantSerializer(qs, many=True).data
 
     def create(self, validated_data):
         category_id = validated_data.pop('category_id', None)
+        subcategory_id = validated_data.pop('subcategory_id', None)
         if category_id:
             validated_data['category_id'] = category_id
+        if subcategory_id:
+            validated_data['subcategory_id'] = subcategory_id
         return super().create(validated_data)
