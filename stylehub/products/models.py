@@ -2,16 +2,62 @@ from django.db import models
 from django.conf import settings
 from cloudinary.models import CloudinaryField
 
-class category(models.Model):
+
+class Section(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
     image = CloudinaryField('image', null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
         return self.name
 
+
+class Category(models.Model):
+    section = models.ForeignKey(
+        Section,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='categories'
+    )
+    name = models.CharField(max_length=100)
+    image = CloudinaryField('image', null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.section.name} > {self.name}" if self.section else self.name
+
+
+class SubCategory(models.Model):
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name='subcategories'
+    )
+    name = models.CharField(max_length=100)
+    image = CloudinaryField('image', null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.category.name} > {self.name}"
+
+
 class product(models.Model):
-    category = models.ForeignKey(category, on_delete=models.CASCADE, related_name='products')
+    # ✅ ممكن يكون في subcategory أو category مباشرة
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='products'
+    )
+    subcategory = models.ForeignKey(
+        SubCategory,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='products'
+    )
     name = models.CharField(max_length=200)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -21,8 +67,7 @@ class product(models.Model):
     parent_product = models.ForeignKey(
         'self',
         on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        null=True, blank=True,
         related_name='color_variants'
     )
     color_name = models.CharField(max_length=50, default="Navy Blue")
@@ -31,6 +76,7 @@ class product(models.Model):
     def __str__(self):
         return self.name
 
+
 class ProductImage(models.Model):
     product = models.ForeignKey(product, related_name='p_images', on_delete=models.CASCADE)
     image = CloudinaryField('image', null=True, blank=True)
@@ -38,10 +84,13 @@ class ProductImage(models.Model):
     def __str__(self):
         return f"Image for {self.product.name}"
 
+
 class Size(models.Model):
     name = models.CharField(max_length=50, unique=True)
+
     def __str__(self):
         return self.name
+
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(product, related_name='variants', on_delete=models.CASCADE)
@@ -54,13 +103,13 @@ class ProductVariant(models.Model):
     def __str__(self):
         return f"{self.product.name} - {self.size.name}"
 
+
 class Review(models.Model):
     product = models.ForeignKey(product, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
-        null=True,   # ✅ guest
-        blank=True   # ✅ guest
+        null=True, blank=True
     )
     rating = models.PositiveSmallIntegerField(default=5)
     comment = models.TextField()
