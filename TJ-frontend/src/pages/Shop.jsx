@@ -1,33 +1,51 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { formatImageUrl } from '../utils/helpers';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, ChevronLeft } from 'lucide-react';
 
 const Shop = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [subcategories, setSubcategories] = useState([]);
+    const [categoryName, setCategoryName] = useState('');
     const location = useLocation();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true);
             const params = new URLSearchParams(location.search);
             const category = params.get('category');
+            const subcategory = params.get('subcategory');
             const search = params.get('search');
-            
+            const section = params.get('section');
+
             let endpoint = '/products/';
             const queries = [];
             if (category) queries.push(`category=${category}`);
+            if (subcategory) queries.push(`subcategory=${subcategory}`);
             if (search) queries.push(`search=${search}`);
-            
-            const finalUrl = queries.length > 0 
-                ? `${endpoint}?${queries.join('&')}` 
-                : endpoint;
+            if (section) queries.push(`section=${section}`);
+
+            const finalUrl = queries.length > 0 ? `${endpoint}?${queries.join('&')}` : endpoint;
 
             try {
                 const res = await api.get(finalUrl);
                 setProducts(Array.isArray(res.data) ? res.data : res.data.results || []);
+
+                // جيب الـ subcategories لو في category
+                if (category) {
+                    const catRes = await api.get(`/subcategories/?category=${category}`);
+                    setSubcategories(catRes.data);
+                    // اسم الكاتيجوري
+                    const allCats = await api.get('/categories/');
+                    const cat = allCats.data.find(c => c.id === parseInt(category));
+                    if (cat) setCategoryName(cat.name);
+                } else {
+                    setSubcategories([]);
+                    setCategoryName('');
+                }
             } catch (err) {
                 setProducts([]);
             } finally {
@@ -37,22 +55,45 @@ const Shop = () => {
         fetchProducts();
     }, [location.search]);
 
-    const searchQuery = new URLSearchParams(location.search).get('search');
+    const params = new URLSearchParams(location.search);
+    const searchQuery = params.get('search');
+    const currentCategory = params.get('category');
+    const currentSubcategory = params.get('subcategory');
 
     return (
         <div className="min-h-screen bg-white" dir="rtl">
-            <div className="px-6 py-8 border-b border-gray-100">
-                <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-brand-dark">
-                            {searchQuery ? `نتائج: "${searchQuery}"` : 'جميع المنتجات'}
-                        </h1>
-                        {!loading && (
-                            <p className="text-gray-400 text-sm mt-1">{products.length} منتج</p>
-                        )}
-                    </div>
+            {/* Header */}
+            <div className="px-6 py-6 border-b border-gray-100">
+                <div className="max-w-7xl mx-auto">
+                    <h1 className="text-2xl font-bold text-brand-dark">
+                        {searchQuery ? `نتائج: "${searchQuery}"` : categoryName || 'جميع المنتجات'}
+                    </h1>
+                    {!loading && <p className="text-gray-400 text-sm mt-1">{products.length} منتج</p>}
                 </div>
             </div>
+
+            {/* Subcategory Filters */}
+            {subcategories.length > 0 && (
+                <div className="border-b border-gray-100 px-6 py-3">
+                    <div className="max-w-7xl mx-auto flex gap-3 overflow-x-auto pb-1">
+                        <button
+                            onClick={() => navigate(`/shop?category=${currentCategory}`)}
+                            className={`text-sm font-bold px-4 py-2 whitespace-nowrap transition-all ${!currentSubcategory ? 'bg-brand-dark text-white' : 'border border-gray-200 text-gray-600 hover:border-brand-gold hover:text-brand-gold'}`}
+                        >
+                            الكل
+                        </button>
+                        {subcategories.map(sub => (
+                            <button
+                                key={sub.id}
+                                onClick={() => navigate(`/shop?category=${currentCategory}&subcategory=${sub.id}`)}
+                                className={`text-sm font-bold px-4 py-2 whitespace-nowrap transition-all ${currentSubcategory === String(sub.id) ? 'bg-brand-dark text-white' : 'border border-gray-200 text-gray-600 hover:border-brand-gold hover:text-brand-gold'}`}
+                            >
+                                {sub.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {loading ? (
@@ -70,10 +111,10 @@ const Shop = () => {
                         {products.map(product => (
                             <div key={product.id} className="group flex flex-col">
                                 <Link to={`/product/${product.id}`} className="relative overflow-hidden bg-gray-50 block mb-3">
-                                    <div className="aspect-[3/4]"> {/* ✅ */}
-                                        <img 
-                                            src={formatImageUrl(product.image)} 
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                                    <div className="aspect-[3/4]">
+                                        <img
+                                            src={formatImageUrl(product.image)}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                             alt={product.name}
                                             onError={(e) => { e.target.src = 'https://via.placeholder.com/400x500'; }}
                                         />
@@ -83,11 +124,8 @@ const Shop = () => {
                                         أضف للسلة
                                     </div>
                                 </Link>
-
                                 <Link to={`/product/${product.id}`} className="flex flex-col flex-1">
-                                    <h3 className="text-brand-dark text-base font-semibold mb-1 leading-snug line-clamp-2">
-                                        {product.name}
-                                    </h3>
+                                    <h3 className="text-brand-dark text-base font-semibold mb-1 leading-snug line-clamp-2">{product.name}</h3>
                                     <p className="text-brand-dark font-bold text-base mt-auto">
                                         {product.price}{' '}
                                         <span className="text-gray-400 text-sm font-normal">EGP</span>
