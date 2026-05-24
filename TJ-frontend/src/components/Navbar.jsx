@@ -25,26 +25,23 @@ const Navbar = () => {
 
   const checkStatusAndCart = async () => {
     const token = localStorage.getItem('access_token');
-    const isStaff = localStorage.getItem('is_staff') === 'true'; 
+    const isStaff = localStorage.getItem('is_staff') === 'true';
     
     setIsLoggedIn(!!token);
-    setIsAdmin(isStaff);   
+    setIsAdmin(isStaff);
 
-    if (token) {
-      try {
-        const response = await api.get('/cart/');
-        const items = response.data.items || [];
-        setCartCount(items.length);
-      } catch (error) {
-        if (error.response?.status === 401) {
-          setIsLoggedIn(false);
-          setIsAdmin(false);
-          setCartCount(0);
-        }
-      }
-    } else {
+    try {
+      const response = await api.get('/cart/');
+      const items = response.data.items || [];
+      // ✅ بيحسب إجمالي الكميات مش عدد المنتجات بس
+      const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+      setCartCount(totalItems);
+    } catch (error) {
       setCartCount(0);
-      setIsAdmin(false);
+      if (error.response?.status === 401) {
+        setIsLoggedIn(false);
+        setIsAdmin(false);
+      }
     }
   };
 
