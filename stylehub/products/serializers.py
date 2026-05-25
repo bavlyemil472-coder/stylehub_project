@@ -83,6 +83,7 @@ class ProductSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
     other_colors = serializers.SerializerMethodField()
+    total_sold = serializers.SerializerMethodField()  # ✅ جديد
 
     class Meta:
         model = product
@@ -92,7 +93,8 @@ class ProductSerializer(serializers.ModelSerializer):
             'category', 'category_id',
             'subcategory', 'subcategory_id',
             'variants', 'p_images', 'color_name', 'color_hex',
-            'other_colors', 'reviews', 'average_rating', 'review_count'
+            'other_colors', 'reviews', 'average_rating', 'review_count',
+            'total_sold',  # ✅ جديد
         )
 
     def get_image(self, obj):
@@ -105,6 +107,14 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_review_count(self, obj):
         return obj.reviews.count()
+
+    def get_total_sold(self, obj):  # ✅ جديد
+        from orders.models import OrderItem
+        from django.db.models import Sum
+        result = OrderItem.objects.filter(
+            variant__product=obj
+        ).aggregate(total=Sum('quantity'))
+        return result['total'] or 0
 
     def get_other_colors(self, obj):
         if obj.parent_product:
