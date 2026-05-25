@@ -241,6 +241,13 @@ const ProductDetail = () => {
                   <span className="text-xs text-gray-400 mr-1">({product.review_count || 0})</span>
                 </div>
               </div>
+              {product.total_sold > 0 && (
+                <p className="text-sm text-gray-400 mt-2 flex items-center gap-1">
+                  🛍️ تم بيع
+                  <span className="font-bold text-brand-dark">{product.total_sold}</span>
+                  قطعة
+                </p>
+              )}
             </div>
 
             <hr className="border-gray-100" />
