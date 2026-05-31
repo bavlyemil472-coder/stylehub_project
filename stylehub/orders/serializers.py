@@ -1,6 +1,17 @@
 from rest_framework import serializers
 from .models import Order, OrderItem, ShippingRate
 
+CLOUD_NAME = "dtlctyyas"
+
+
+def get_optimized_url(image_field, width=800):
+    if not image_field:
+        return None
+    raw = str(image_field)
+    public_id = raw.split('/')[-1]
+    public_id = public_id.rsplit('.', 1)[0] if '.' in public_id else public_id
+    return f"https://res.cloudinary.com/{CLOUD_NAME}/image/upload/f_auto,q_auto,w_{width},c_limit/{public_id}"
+
 
 class OrderItemSerializer(serializers.ModelSerializer):
     total_price = serializers.SerializerMethodField()
@@ -18,10 +29,10 @@ class OrderItemSerializer(serializers.ModelSerializer):
         try:
             product = obj.variant.product
             if product.image:
-                return product.image.url
+                return get_optimized_url(product.image, width=400)
             if product.p_images.exists():
-                return product.p_images.first().image.url
-        except:
+                return get_optimized_url(product.p_images.first().image, width=400)
+        except Exception:
             return None
         return None
 
