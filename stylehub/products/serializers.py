@@ -4,16 +4,10 @@ from .models import product, Category, Section, SubCategory, ProductVariant, Pro
 
 
 def get_optimized_url(image_field, width=800):
-    """
-    Helper function to build optimized Cloudinary URL.
-    - f_auto: converts to WebP automatically
-    - q_auto: smart quality compression
-    - w_{width}: resize width
-    - crop=limit: won't upscale if image is smaller
-    """
     if not image_field:
         return None
-    return cloudinary.CloudinaryImage(str(image_field)).build_url(
+    public_id = image_field.public_id if hasattr(image_field, 'public_id') else str(image_field)
+    return cloudinary.CloudinaryImage(public_id).build_url(
         fetch_format="auto",
         quality="auto",
         width=width,
@@ -65,7 +59,6 @@ class ProductImageSerializer(serializers.ModelSerializer):
         fields = ('id', 'image')
 
     def get_image(self, obj):
-        # صور المنتج التفصيلية ممكن تكون أكبر شوية
         return get_optimized_url(obj.image, width=1200)
 
 
@@ -118,7 +111,6 @@ class ProductSerializer(serializers.ModelSerializer):
         )
 
     def get_image(self, obj):
-        # الصورة الرئيسية للمنتج في اللستات
         return get_optimized_url(obj.image, width=800)
 
     def get_average_rating(self, obj):
