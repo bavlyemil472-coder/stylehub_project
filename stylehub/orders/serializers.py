@@ -1,5 +1,24 @@
+import cloudinary
 from rest_framework import serializers
 from .models import Order, OrderItem, ShippingRate
+
+
+def get_optimized_url(image_field, width=800):
+    """
+    Helper function to build optimized Cloudinary URL.
+    - fetch_format=auto: converts to WebP automatically
+    - quality=auto: smart quality compression
+    - width: resize width
+    - crop=limit: won't upscale if image is smaller
+    """
+    if not image_field:
+        return None
+    return cloudinary.CloudinaryImage(str(image_field)).build_url(
+        fetch_format="auto",
+        quality="auto",
+        width=width,
+        crop="limit"
+    )
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -18,10 +37,10 @@ class OrderItemSerializer(serializers.ModelSerializer):
         try:
             product = obj.variant.product
             if product.image:
-                return product.image.url
+                return get_optimized_url(product.image, width=400)
             if product.p_images.exists():
-                return product.p_images.first().image.url
-        except:
+                return get_optimized_url(product.p_images.first().image, width=400)
+        except Exception:
             return None
         return None
 
