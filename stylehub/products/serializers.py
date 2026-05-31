@@ -1,18 +1,16 @@
-import re
 from rest_framework import serializers
 from .models import product, Category, Section, SubCategory, ProductVariant, ProductImage, Review
+
+CLOUD_NAME = "dev0xozzb"
 
 
 def get_optimized_url(image_field, width=800):
     if not image_field:
         return None
-    url = image_field.url
-    match = re.search(r'/upload/(?:[^/]+/)*([^/]+)$', url)
-    if not match:
-        return url
-    public_id = match.group(1)
-    base_url = url.split('/upload/')[0]
-    return f"{base_url}/upload/f_auto,q_auto,w_{width},c_limit/{public_id}"
+    raw = str(image_field)
+    public_id = raw.split('/')[-1]
+    public_id = public_id.rsplit('.', 1)[0] if '.' in public_id else public_id
+    return f"https://res.cloudinary.com/{CLOUD_NAME}/image/upload/f_auto,q_auto,w_{width},c_limit/{public_id}"
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
