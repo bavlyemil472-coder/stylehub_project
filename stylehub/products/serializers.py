@@ -1,6 +1,17 @@
 from rest_framework import serializers
 from .models import product, Category, Section, SubCategory, ProductVariant, ProductImage, Review
 
+CLOUD_NAME = "dtlctyyas"
+
+
+def get_optimized_url(image_field, width=800):
+    if not image_field:
+        return None
+    raw = str(image_field)
+    public_id = raw.split('/')[-1]
+    public_id = public_id.rsplit('.', 1)[0] if '.' in public_id else public_id
+    return f"https://res.cloudinary.com/{CLOUD_NAME}/image/upload/f_auto,q_auto,w_{width},c_limit/{public_id}"
+
 
 class SubCategorySerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
@@ -10,7 +21,7 @@ class SubCategorySerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'description')
 
     def get_image(self, obj):
-        return obj.image.url if obj.image else None
+        return get_optimized_url(obj.image, width=400)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -23,7 +34,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'description', 'section_name', 'subcategories')
 
     def get_image(self, obj):
-        return obj.image.url if obj.image else None
+        return get_optimized_url(obj.image, width=400)
 
 
 class SectionSerializer(serializers.ModelSerializer):
@@ -35,7 +46,7 @@ class SectionSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'description', 'categories')
 
     def get_image(self, obj):
-        return obj.image.url if obj.image else None
+        return get_optimized_url(obj.image, width=600)
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -46,7 +57,7 @@ class ProductImageSerializer(serializers.ModelSerializer):
         fields = ('id', 'image')
 
     def get_image(self, obj):
-        return obj.image.url if obj.image else None
+        return get_optimized_url(obj.image, width=1200)
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -83,7 +94,7 @@ class ProductSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
     other_colors = serializers.SerializerMethodField()
-    total_sold = serializers.SerializerMethodField()  # ✅ جديد
+    total_sold = serializers.SerializerMethodField()
 
     class Meta:
         model = product
@@ -94,11 +105,11 @@ class ProductSerializer(serializers.ModelSerializer):
             'subcategory', 'subcategory_id',
             'variants', 'p_images', 'color_name', 'color_hex',
             'other_colors', 'reviews', 'average_rating', 'review_count',
-            'total_sold',  # ✅ جديد
+            'total_sold',
         )
 
     def get_image(self, obj):
-        return obj.image.url if obj.image else None
+        return get_optimized_url(obj.image, width=800)
 
     def get_average_rating(self, obj):
         from django.db.models import Avg
@@ -108,7 +119,7 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_review_count(self, obj):
         return obj.reviews.count()
 
-    def get_total_sold(self, obj):  # ✅ جديد
+    def get_total_sold(self, obj):
         from orders.models import OrderItem
         from django.db.models import Sum
         result = OrderItem.objects.filter(
