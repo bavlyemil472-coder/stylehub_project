@@ -1,4 +1,4 @@
-import cloudinary
+import re
 from rest_framework import serializers
 from .models import product, Category, Section, SubCategory, ProductVariant, ProductImage, Review
 
@@ -6,13 +6,14 @@ from .models import product, Category, Section, SubCategory, ProductVariant, Pro
 def get_optimized_url(image_field, width=800):
     if not image_field:
         return None
-    public_id = image_field.public_id if hasattr(image_field, 'public_id') else str(image_field)
-    return cloudinary.CloudinaryImage(public_id).build_url(
-        fetch_format="auto",
-        quality="auto",
-        width=width,
-        crop="limit"
+    url = image_field.url
+    url = re.sub(
+        r'/upload/([^/]+/)*',
+        f'/upload/f_auto,q_auto,w_{width},c_limit/',
+        url,
+        count=1
     )
+    return url
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
