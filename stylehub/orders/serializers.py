@@ -7,13 +7,12 @@ def get_optimized_url(image_field, width=800):
     if not image_field:
         return None
     url = image_field.url
-    url = re.sub(
-        r'/upload/([^/]+/)*',
-        f'/upload/f_auto,q_auto,w_{width},c_limit/',
-        url,
-        count=1
-    )
-    return url
+    match = re.search(r'/upload/(?:[^/]+/)*([^/]+)$', url)
+    if not match:
+        return url
+    public_id = match.group(1)
+    base_url = url.split('/upload/')[0]
+    return f"{base_url}/upload/f_auto,q_auto,w_{width},c_limit/{public_id}"
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
