@@ -5,16 +5,10 @@ from products.models import product, ProductImage, ProductVariant
 
 
 def get_optimized_url(image_field, width=400):
-    """
-    Helper function to build optimized Cloudinary URL.
-    - fetch_format=auto: converts to WebP automatically
-    - quality=auto: smart quality compression
-    - width: resize width
-    - crop=limit: won't upscale if image is smaller
-    """
     if not image_field:
         return None
-    return cloudinary.CloudinaryImage(str(image_field)).build_url(
+    public_id = image_field.public_id if hasattr(image_field, 'public_id') else str(image_field)
+    return cloudinary.CloudinaryImage(public_id).build_url(
         fetch_format="auto",
         quality="auto",
         width=width,
@@ -43,7 +37,6 @@ class CartItemSerializer(serializers.ModelSerializer):
             product_obj = obj.variant.product
             if product_obj.image:
                 return get_optimized_url(product_obj.image, width=400)
-            # fallback لو مفيش صورة رئيسية
             first_image = product_obj.p_images.first()
             if first_image:
                 return get_optimized_url(first_image.image, width=400)
