@@ -4,16 +4,10 @@ from .models import Order, OrderItem, ShippingRate
 
 
 def get_optimized_url(image_field, width=800):
-    """
-    Helper function to build optimized Cloudinary URL.
-    - fetch_format=auto: converts to WebP automatically
-    - quality=auto: smart quality compression
-    - width: resize width
-    - crop=limit: won't upscale if image is smaller
-    """
     if not image_field:
         return None
-    return cloudinary.CloudinaryImage(str(image_field)).build_url(
+    public_id = image_field.public_id if hasattr(image_field, 'public_id') else str(image_field)
+    return cloudinary.CloudinaryImage(public_id).build_url(
         fetch_format="auto",
         quality="auto",
         width=width,
