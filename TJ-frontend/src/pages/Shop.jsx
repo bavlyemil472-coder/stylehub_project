@@ -34,11 +34,9 @@ const Shop = () => {
                 const res = await api.get(finalUrl);
                 setProducts(Array.isArray(res.data) ? res.data : res.data.results || []);
 
-                // جيب الـ subcategories لو في category
                 if (category) {
                     const catRes = await api.get(`/subcategories/?category=${category}`);
                     setSubcategories(catRes.data);
-                    // اسم الكاتيجوري
                     const allCats = await api.get('/categories/');
                     const cat = allCats.data.find(c => c.id === parseInt(category));
                     if (cat) setCategoryName(cat.name);
@@ -62,6 +60,7 @@ const Shop = () => {
 
     return (
         <div className="min-h-screen bg-white" dir="rtl">
+
             {/* Header */}
             <div className="px-6 py-6 border-b border-gray-100">
                 <div className="max-w-7xl mx-auto">
@@ -119,17 +118,35 @@ const Shop = () => {
                                             onError={(e) => { e.target.src = 'https://via.placeholder.com/400x500'; }}
                                         />
                                     </div>
+
+                                    {/* ✅ Badge الخصم على الكارد */}
+                                    {product.discount > 0 && (
+                                        <div className="absolute top-2 right-2 bg-red-600 text-white text-[11px] font-bold px-2 py-1 z-10">
+                                            -{product.discount}%
+                                        </div>
+                                    )}
+
                                     <div className="absolute bottom-0 left-0 right-0 bg-brand-dark/90 text-white text-center py-3 text-sm font-bold translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center gap-2">
                                         <ShoppingBag className="w-4 h-4" />
                                         أضف للسلة
                                     </div>
                                 </Link>
+
                                 <Link to={`/product/${product.id}`} className="flex flex-col flex-1">
                                     <h3 className="text-brand-dark text-base font-semibold mb-1 leading-snug line-clamp-2">{product.name}</h3>
-                                    <p className="text-brand-dark font-bold text-base mt-auto">
-                                        {product.price}{' '}
-                                        <span className="text-gray-400 text-sm font-normal">EGP</span>
-                                    </p>
+
+                                    {/* ✅ السعر مع الخصم */}
+                                    <div className="mt-auto">
+                                        <p className="text-brand-dark font-bold text-base">
+                                            {product.price}{' '}
+                                            <span className="text-gray-400 text-sm font-normal">EGP</span>
+                                        </p>
+                                        {product.original_price && (
+                                            <p className="text-xs text-gray-400 line-through">
+                                                {product.original_price} EGP
+                                            </p>
+                                        )}
+                                    </div>
                                 </Link>
                             </div>
                         ))}
