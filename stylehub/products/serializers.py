@@ -96,10 +96,14 @@ class ProductSerializer(serializers.ModelSerializer):
     other_colors = serializers.SerializerMethodField()
     total_sold = serializers.SerializerMethodField()
 
+    # ✅ الجديد: السعر الأصلي قبل الخصم
+    original_price = serializers.SerializerMethodField()
+
     class Meta:
         model = product
         fields = (
             'id', 'name', 'description', 'price', 'image',
+            'discount', 'original_price',          # ✅ الجديد
             'is_available', 'created_at',
             'category', 'category_id',
             'subcategory', 'subcategory_id',
@@ -126,6 +130,17 @@ class ProductSerializer(serializers.ModelSerializer):
             variant__product=obj
         ).aggregate(total=Sum('quantity'))
         return result['total'] or 0
+
+    def get_original_price(self, obj):
+        """
+        لو في خصم، نحسب السعر الأصلي قبل الخصم.
+        المنتج بيتحفظ بالسعر بعد الخصم، والـ API بيرجع الأصلي محسوب.
+        مثال: price=550, discount=15 → original = 550 / (1 - 0.15) ≈ 647
+        """
+        if obj.discount and obj.discount > 0:
+            original = float(obj.price) / (1 - obj.discount / 100)
+            return round(original, 2)
+        return None
 
     def get_other_colors(self, obj):
         if obj.parent_product:
