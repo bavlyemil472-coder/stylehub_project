@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import product, Category, Section, SubCategory, ProductVariant, ProductImage, Review
+from .models import product, Category, Section, SubCategory, ProductVariant, ProductImage, Review, AnnouncementBar
 
 CLOUD_NAME = "dtlctyyas"
 
@@ -95,15 +95,13 @@ class ProductSerializer(serializers.ModelSerializer):
     review_count = serializers.SerializerMethodField()
     other_colors = serializers.SerializerMethodField()
     total_sold = serializers.SerializerMethodField()
-
-    # ✅ الجديد: السعر الأصلي قبل الخصم
     original_price = serializers.SerializerMethodField()
 
     class Meta:
         model = product
         fields = (
             'id', 'name', 'description', 'price', 'image',
-            'discount', 'original_price',          # ✅ الجديد
+            'discount', 'original_price',
             'is_available', 'created_at',
             'category', 'category_id',
             'subcategory', 'subcategory_id',
@@ -132,11 +130,6 @@ class ProductSerializer(serializers.ModelSerializer):
         return result['total'] or 0
 
     def get_original_price(self, obj):
-        """
-        لو في خصم، نحسب السعر الأصلي قبل الخصم.
-        المنتج بيتحفظ بالسعر بعد الخصم، والـ API بيرجع الأصلي محسوب.
-        مثال: price=550, discount=15 → original = 550 / (1 - 0.15) ≈ 647
-        """
         if obj.discount and obj.discount > 0:
             original = float(obj.price) / (1 - obj.discount / 100)
             return round(original, 2)
@@ -159,3 +152,10 @@ class ProductSerializer(serializers.ModelSerializer):
         if subcategory_id:
             validated_data['subcategory_id'] = subcategory_id
         return super().create(validated_data)
+
+
+# ✅ الجديد: serializer الشريط الإعلاني
+class AnnouncementBarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnnouncementBar
+        fields = ('id', 'text', 'is_active')
