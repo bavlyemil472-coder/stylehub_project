@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from .models import product, category, Section, SubCategory, Size, ProductVariant, ProductImage, Review
+from .models import product, Category, Section, SubCategory, Size, ProductVariant, ProductImage, Review, AnnouncementBar
 
 
 class ProductImageInline(admin.TabularInline):
@@ -45,7 +45,7 @@ class SectionAdmin(admin.ModelAdmin):
     description_short.short_description = "الوصف"
 
 
-@admin.register(category)
+@admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('image_preview', 'name', 'section', 'subcategories_count', 'description_short')
     list_filter = ('section',)
@@ -89,7 +89,7 @@ class SubCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('image_tag', 'name', 'price', 'category', 'subcategory', 'total_stock_display', 'is_available')
+    list_display = ('image_tag', 'name', 'price', 'discount_badge', 'category', 'subcategory', 'total_stock_display', 'is_available')
     list_filter = ('is_available', 'category', 'subcategory', 'category__section')
     search_fields = ('name',)
     inlines = [ProductImageInline, ProductVariantInline]
@@ -99,6 +99,12 @@ class ProductAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="width: 45px; height: 45px; border-radius: 5px; object-fit: cover;" />', obj.image.url)
         return "No Image"
     image_tag.short_description = "صورة"
+
+    def discount_badge(self, obj):
+        if obj.discount > 0:
+            return mark_safe(f'<b style="color: #d32f2f;">-{obj.discount}%</b>')
+        return mark_safe('<span style="color: #aaa;">-</span>')
+    discount_badge.short_description = "خصم"
 
     def total_stock_display(self, obj):
         total = sum(variant.stock for variant in obj.variants.all())
@@ -143,3 +149,14 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ('product', 'user', 'rating', 'created_at')
     list_filter = ('rating',)
     search_fields = ('product__name',)
+
+
+# ✅ الجديد: الشريط الإعلاني
+@admin.register(AnnouncementBar)
+class AnnouncementBarAdmin(admin.ModelAdmin):
+    list_display = ('text_preview', 'is_active', 'created_at')
+    list_editable = ('is_active',)
+
+    def text_preview(self, obj):
+        return obj.text[:80] + "..." if len(obj.text) > 80 else obj.text
+    text_preview.short_description = "النص"
