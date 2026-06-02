@@ -68,10 +68,16 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         fields = ('id', 'size_name', 'stock')
 
 
+# ✅ الجديد: بيرجع image مع الألوان التانية
 class ColorVariantSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = product
-        fields = ['id', 'color_name', 'color_hex']
+        fields = ['id', 'color_name', 'color_hex', 'image']
+
+    def get_image(self, obj):
+        return get_optimized_url(obj.image, width=400)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -154,7 +160,6 @@ class ProductSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-# ✅ الجديد: serializer الشريط الإعلاني
 class AnnouncementBarSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnnouncementBar
