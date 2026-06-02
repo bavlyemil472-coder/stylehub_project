@@ -45,7 +45,6 @@ class SubCategory(models.Model):
 
 
 class product(models.Model):
-    # ✅ ممكن يكون في subcategory أو category مباشرة
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -61,6 +60,13 @@ class product(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    # ✅ الجديد: نسبة الخصم (0 = مفيش خصم)
+    discount = models.PositiveIntegerField(
+        default=0,
+        help_text="نسبة الخصم بالـ % (0 = مفيش خصم، 15 = خصم 15%)"
+    )
+
     image = CloudinaryField('image', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_available = models.BooleanField(default=True)
