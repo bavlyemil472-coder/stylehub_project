@@ -60,13 +60,10 @@ class product(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-
-    # ✅ الجديد: نسبة الخصم (0 = مفيش خصم)
     discount = models.PositiveIntegerField(
         default=0,
         help_text="نسبة الخصم بالـ % (0 = مفيش خصم، 15 = خصم 15%)"
     )
-
     image = CloudinaryField('image', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_available = models.BooleanField(default=True)
@@ -127,3 +124,18 @@ class Review(models.Model):
     def __str__(self):
         user_str = self.user.username if self.user else "Guest"
         return f"{user_str} - {self.product.name} ({self.rating})"
+
+
+# ✅ الجديد: الشريط الإعلاني
+class AnnouncementBar(models.Model):
+    text = models.CharField(max_length=300, help_text="النص اللي هيظهر في الشريط الإعلاني")
+    is_active = models.BooleanField(default=True, help_text="فعّل أو عطّل الشريط")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Announcement Bar"
+        verbose_name_plural = "Announcement Bars"
+
+    def __str__(self):
+        status = "✅ نشط" if self.is_active else "❌ معطل"
+        return f"{status} | {self.text[:50]}"
