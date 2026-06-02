@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { ShoppingCart, ChevronLeft, ChevronRight, ShieldCheck, Truck, Star, X, ZoomIn } from 'lucide-react';
+import { ShoppingCart, ChevronLeft, ChevronRight, ShieldCheck, Truck, Star, X, ZoomIn, Zap } from 'lucide-react';
 import { formatImageUrl } from '../utils/helpers';
 
 const ProductDetail = () => {
@@ -94,6 +94,19 @@ const ProductDetail = () => {
     }
   };
 
+  // ✅ Buy Now
+  const handleBuyNow = async () => {
+    if (!selectedVariant) { toast.error("يرجى اختيار المقاس أولاً"); return; }
+    if (Number(selectedVariant.stock) <= 0) { toast.error("هذا المقاس غير متوفر حالياً"); return; }
+    try {
+      await api.post('/cart/add/', { variant_id: selectedVariant.id, quantity });
+      window.dispatchEvent(new Event('cartUpdated'));
+      navigate('/checkout');
+    } catch (err) {
+      toast.error(err.response?.data?.error || "حدث خطأ");
+    }
+  };
+
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -113,6 +126,8 @@ const ProductDetail = () => {
       <div className="w-8 h-8 border-2 border-brand-gold border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
+
+  const isUnavailable = !selectedVariant || Number(selectedVariant?.stock) <= 0;
 
   return (
     <div className="min-h-screen bg-white" dir="rtl">
@@ -160,7 +175,6 @@ const ProductDetail = () => {
             >
               <img src={formatImageUrl(allImages[activeIndex]?.url)} alt={product.name} className="w-full h-full object-cover transition-opacity duration-500" />
 
-              {/* Badge الخصم */}
               {product.discount > 0 && (
                 <div className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 z-10 shadow-md">
                   -{product.discount}%
@@ -204,7 +218,7 @@ const ProductDetail = () => {
 
             <h1 className="text-2xl font-bold text-brand-dark leading-snug">{product.name}</h1>
 
-            {/* ✅ الوصف قبل السعر — فونط أوضح — Enter شغال */}
+            {/* الوصف قبل السعر */}
             {product.description && (
               <div>
                 <p className="text-sm font-bold text-brand-dark mb-2">وصف المنتج</p>
@@ -216,7 +230,7 @@ const ProductDetail = () => {
 
             <hr className="border-gray-100" />
 
-            {/* السعر مع الخصم */}
+            {/* السعر */}
             <div>
               <div className="flex items-baseline gap-3 flex-wrap mb-2">
                 <p className="text-2xl font-bold text-brand-gold">
@@ -246,18 +260,16 @@ const ProductDetail = () => {
 
             <hr className="border-gray-100" />
 
-            {/* ✅ الألوان — صور thumbnails بدل دوائر */}
+            {/* الألوان thumbnails */}
             {product.other_colors && product.other_colors.length > 0 && (
               <div>
                 <p className="text-sm font-bold text-brand-dark mb-3">
                   اللون: <span className="text-brand-gold">{product.color_name}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {/* اللون الحالي */}
                   <div className="w-16 h-20 border-2 border-brand-dark overflow-hidden flex-shrink-0">
                     <img src={formatImageUrl(product.image)} className="w-full h-full object-cover" alt={product.color_name} />
                   </div>
-                  {/* الألوان التانية */}
                   {product.other_colors.map((variant) => (
                     <Link
                       key={variant.id}
@@ -299,24 +311,43 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* الكمية + إضافة للسلة */}
-            <div className="flex gap-3">
-              <div className="flex items-center border border-gray-200">
-                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-3 hover:bg-gray-50 text-lg">−</button>
-                <span className="px-6 py-3 font-bold text-base border-x border-gray-200">{quantity}</span>
-                <button onClick={() => setQuantity(q => q + 1)} className="px-4 py-3 hover:bg-gray-50 text-lg">+</button>
+            {/* ===== الكمية + الأزرار ===== */}
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                {/* الكمية */}
+                <div className="flex items-center border border-gray-200">
+                  <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-3 hover:bg-gray-50 text-lg">−</button>
+                  <span className="px-6 py-3 font-bold text-base border-x border-gray-200">{quantity}</span>
+                  <button onClick={() => setQuantity(q => q + 1)} className="px-4 py-3 hover:bg-gray-50 text-lg">+</button>
+                </div>
+
+                {/* أضف للسلة */}
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isUnavailable}
+                  className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all border
+                    ${isUnavailable
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-100'
+                      : 'border-brand-dark text-brand-dark hover:bg-brand-dark hover:text-white'
+                    }`}
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  {isUnavailable ? 'غير متوفر' : 'أضف للسلة'}
+                </button>
               </div>
+
+              {/* ✅ Buy Now */}
               <button
-                onClick={handleAddToCart}
-                disabled={!selectedVariant || Number(selectedVariant?.stock) <= 0}
-                className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all
-                  ${(!selectedVariant || Number(selectedVariant?.stock) <= 0)
+                onClick={handleBuyNow}
+                disabled={isUnavailable}
+                className={`w-full py-4 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all
+                  ${isUnavailable
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-brand-dark text-white hover:bg-brand-gold hover:text-brand-dark'
                   }`}
               >
-                <ShoppingCart className="w-4 h-4" />
-                {(!selectedVariant || Number(selectedVariant?.stock) <= 0) ? 'غير متوفر' : 'أضف إلى السلة'}
+                <Zap className="w-4 h-4" />
+                اشتري الآن
               </button>
             </div>
 
