@@ -167,9 +167,10 @@ const ProductDetail = () => {
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
+          {/* ===== قسم الصور ===== */}
           <div className="space-y-3">
             <div
-              className="relative overflow-hidden bg-gray-50 aspect-[3/4] cursor-zoom-in group" // ✅
+              className="relative overflow-hidden bg-gray-50 aspect-[3/4] cursor-zoom-in group"
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
               onClick={() => setLightbox(true)}
@@ -179,6 +180,13 @@ const ProductDetail = () => {
                 alt={product.name}
                 className="w-full h-full object-cover transition-opacity duration-500"
               />
+
+              {/* ✅ Badge الخصم */}
+              {product.discount > 0 && (
+                <div className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 z-10 shadow-md">
+                  -{product.discount}%
+                </div>
+              )}
 
               <div className="absolute top-3 left-3 bg-white/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                 <ZoomIn className="w-4 h-4 text-brand-dark" />
@@ -227,13 +235,30 @@ const ProductDetail = () => {
             )}
           </div>
 
+          {/* ===== قسم التفاصيل ===== */}
           <div className="flex flex-col gap-5">
             <div>
               <h1 className="text-2xl font-bold text-brand-dark mb-3 leading-snug">{product.name}</h1>
-              <div className="flex items-center gap-4">
-                <p className="text-2xl font-bold text-brand-gold">
-                  {product.price} <span className="text-sm font-normal text-gray-400">EGP</span>
-                </p>
+
+              {/* ✅ السعر مع الخصم */}
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-baseline gap-3">
+                  <p className="text-2xl font-bold text-brand-gold">
+                    {product.price} <span className="text-sm font-normal text-gray-400">EGP</span>
+                  </p>
+                  {/* السعر الأصلي مشطوب */}
+                  {product.original_price && (
+                    <p className="text-base text-gray-400 line-through">
+                      {product.original_price} EGP
+                    </p>
+                  )}
+                  {/* بادج نسبة الخصم جنب السعر */}
+                  {product.discount > 0 && (
+                    <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5">
+                      وفّر {product.discount}%
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className={`w-4 h-4 ${i < Math.round(product.average_rating || 5) ? 'fill-brand-gold text-brand-gold' : 'text-gray-200'}`} />
@@ -241,6 +266,7 @@ const ProductDetail = () => {
                   <span className="text-xs text-gray-400 mr-1">({product.review_count || 0})</span>
                 </div>
               </div>
+
               {product.total_sold > 0 && (
                 <p className="text-sm text-gray-400 mt-2 flex items-center gap-1">
                   🛍️ تم بيع
@@ -340,6 +366,7 @@ const ProductDetail = () => {
           </div>
         </div>
 
+        {/* ===== التقييمات ===== */}
         <div className="mt-16 border-t border-gray-100 pt-12">
           <h3 className="text-xl font-bold text-brand-dark mb-8">آراء العملاء ({product.review_count || 0})</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
