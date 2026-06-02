@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
-import logo from '../assets/logo.jpeg'; 
-import { 
-  ShoppingBag, 
-  User, 
-  LogOut, 
-  Menu, 
-  X, 
+import logo from '../assets/logo.jpeg';
+import {
+  ShoppingBag,
+  User,
+  LogOut,
+  Menu,
+  X,
   Search,
   ChevronDown,
-  LayoutDashboard 
+  LayoutDashboard
 } from 'lucide-react';
-import { formatImageUrl } from '../utils/helpers'; 
+import { formatImageUrl } from '../utils/helpers';
+import AnnouncementBar from './AnnouncementBar'; // ✅ الجديد
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,15 +21,13 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  // ✅ الشريط الإعلاني
-  const [announcementVisible, setAnnouncementVisible] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
   const checkStatusAndCart = async () => {
     const token = localStorage.getItem('access_token');
     const isStaff = localStorage.getItem('is_staff') === 'true';
-    
+
     setIsLoggedIn(!!token);
     setIsAdmin(isStaff);
 
@@ -62,7 +61,7 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.clear(); 
+    localStorage.clear();
     setIsLoggedIn(false);
     setIsAdmin(false);
     setCartCount(0);
@@ -74,30 +73,19 @@ const Navbar = () => {
 
   return (
     <>
-      {/* ✅ الشريط الإعلاني */}
-      {announcementVisible && (
-        <div className="bg-[#D4251C] text-white text-center py-2 px-10 text-sm font-bold flex items-center justify-center relative sticky top-0 z-[101]">
-          <span>🔥 Today deal sale off <strong>70%</strong>. Hurry Up →</span>
-          <button
-            onClick={() => setAnnouncementVisible(false)}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition-colors text-lg leading-none"
-            aria-label="إغلاق الإعلان"
-          >
-            ✕
-          </button>
-        </div>
-      )}
+      {/* ✅ الشريط الإعلاني — بييجي نصه من الـ Django Admin */}
+      <AnnouncementBar />
 
       <nav className="bg-[#0a0a0a] text-white sticky top-0 z-[100] border-b border-white/5 backdrop-blur-md bg-opacity-90">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between h-20 items-center">
-            
+
             <Link to="/" className="flex items-center gap-3 group transition-transform duration-500 hover:scale-105">
               <div className="relative">
-                <img 
-                  src={logo} 
-                  alt="Tres Jolie" 
-                  className="w-10 h-10 rounded-full border border-brand-gold/30 p-0.5 object-cover" 
+                <img
+                  src={logo}
+                  alt="Tres Jolie"
+                  className="w-10 h-10 rounded-full border border-brand-gold/30 p-0.5 object-cover"
                 />
                 <div className="absolute inset-0 rounded-full bg-brand-gold/20 animate-ping opacity-20 group-hover:opacity-40"></div>
               </div>
@@ -110,10 +98,10 @@ const Navbar = () => {
             <div className="hidden md:flex items-center space-x-10">
               <Link to="/" className={`text-[10px] font-black uppercase tracking-[0.3em] hover:text-brand-gold transition-all duration-300 ${isActive('/')}`}>Home</Link>
               <Link to="/shop" className={`text-[10px] font-black uppercase tracking-[0.3em] hover:text-brand-gold transition-all duration-300 ${isActive('/shop')}`}>Collections</Link>
-              
+
               {isAdmin && (
-                <Link 
-                  to="/admin-dashboard" 
+                <Link
+                  to="/admin-dashboard"
                   className="group relative flex items-center gap-2 bg-brand-gold/10 px-4 py-1.5 rounded-full border border-brand-gold/20 hover:bg-brand-gold hover:text-brand-dark transition-all duration-500"
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
@@ -132,7 +120,7 @@ const Navbar = () => {
 
             <div className="hidden md:flex items-center gap-8">
               <form onSubmit={handleSearchSubmit} className="relative group">
-                <input 
+                <input
                   type="text"
                   placeholder="Find something..."
                   value={searchQuery}
@@ -181,7 +169,7 @@ const Navbar = () => {
                 )}
               </Link>
               <button onClick={() => setIsOpen(!isOpen)} className="text-white">
-                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 " />}
+                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
@@ -189,7 +177,7 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         <div className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-500 md:hidden ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsOpen(false)}>
-          <div 
+          <div
             className={`absolute right-0 top-0 h-full w-[280px] bg-[#0a0a0a] p-8 space-y-10 shadow-2xl transition-transform duration-500 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
             onClick={(e) => e.stopPropagation()}
           >
@@ -207,9 +195,9 @@ const Navbar = () => {
               </Link>
 
               {isAdmin && (
-                <Link 
-                  to="/admin-dashboard" 
-                  onClick={() => setIsOpen(false)} 
+                <Link
+                  to="/admin-dashboard"
+                  onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-brand-gold p-4 bg-brand-gold/5 rounded-xl border border-brand-gold/10 shadow-inner"
                 >
                   <LayoutDashboard className="w-4 h-4" /> Admin Dashboard
