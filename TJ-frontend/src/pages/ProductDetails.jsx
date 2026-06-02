@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { ShoppingCart, Plus, Minus, ChevronLeft, ChevronRight, ShieldCheck, Truck, Star, X, ZoomIn } from 'lucide-react';
+import { ShoppingCart, ChevronLeft, ChevronRight, ShieldCheck, Truck, Star, X, ZoomIn } from 'lucide-react';
 import { formatImageUrl } from '../utils/helpers';
 
 const ProductDetail = () => {
@@ -117,45 +117,28 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-white" dir="rtl">
 
+      {/* Lightbox */}
       {lightbox && (
-        <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
-          onClick={() => setLightbox(false)}
-        >
+        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setLightbox(false)}>
           <button className="absolute top-4 right-4 text-white hover:text-brand-gold transition-colors z-10" onClick={() => setLightbox(false)}>
             <X className="w-8 h-8" />
           </button>
-
           {allImages.length > 1 && (
             <>
-              <button
-                onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 w-12 h-12 flex items-center justify-center transition-all rounded-full"
-              >
+              <button onClick={(e) => { e.stopPropagation(); prevImage(); }} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 w-12 h-12 flex items-center justify-center transition-all rounded-full">
                 <ChevronRight className="w-6 h-6 text-white" />
               </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 w-12 h-12 flex items-center justify-center transition-all rounded-full"
-              >
+              <button onClick={(e) => { e.stopPropagation(); nextImage(); }} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 w-12 h-12 flex items-center justify-center transition-all rounded-full">
                 <ChevronLeft className="w-6 h-6 text-white" />
               </button>
             </>
           )}
-
-          <img
-            src={formatImageUrl(allImages[activeIndex]?.url)}
-            alt={product.name}
-            className="max-h-[90vh] max-w-[90vw] object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
-            {activeIndex + 1} / {allImages.length}
-          </div>
+          <img src={formatImageUrl(allImages[activeIndex]?.url)} alt={product.name} className="max-h-[90vh] max-w-[90vw] object-contain" onClick={(e) => e.stopPropagation()} />
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">{activeIndex + 1} / {allImages.length}</div>
         </div>
       )}
 
+      {/* Breadcrumb */}
       <div className="border-b border-gray-100 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-400">
           <button onClick={() => navigate('/shop')} className="hover:text-brand-dark transition-colors">المنتجات</button>
@@ -175,13 +158,9 @@ const ProductDetail = () => {
               onTouchEnd={handleTouchEnd}
               onClick={() => setLightbox(true)}
             >
-              <img
-                src={formatImageUrl(allImages[activeIndex]?.url)}
-                alt={product.name}
-                className="w-full h-full object-cover transition-opacity duration-500"
-              />
+              <img src={formatImageUrl(allImages[activeIndex]?.url)} alt={product.name} className="w-full h-full object-cover transition-opacity duration-500" />
 
-              {/* ✅ Badge الخصم */}
+              {/* Badge الخصم */}
               {product.discount > 0 && (
                 <div className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 z-10 shadow-md">
                   -{product.discount}%
@@ -194,26 +173,15 @@ const ProductDetail = () => {
 
               {allImages.length > 1 && (
                 <>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); prevImage(); }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white w-10 h-10 flex items-center justify-center shadow-md transition-all"
-                  >
+                  <button onClick={(e) => { e.stopPropagation(); prevImage(); }} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white w-10 h-10 flex items-center justify-center shadow-md transition-all">
                     <ChevronRight className="w-5 h-5 text-brand-dark" />
                   </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); nextImage(); }}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white w-10 h-10 flex items-center justify-center shadow-md transition-all"
-                  >
+                  <button onClick={(e) => { e.stopPropagation(); nextImage(); }} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white w-10 h-10 flex items-center justify-center shadow-md transition-all">
                     <ChevronLeft className="w-5 h-5 text-brand-dark" />
                   </button>
-
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
                     {allImages.map((_, i) => (
-                      <button
-                        key={i}
-                        onClick={(e) => { e.stopPropagation(); setActiveIndex(i); }}
-                        className={`h-2 rounded-full transition-all duration-300 ${i === activeIndex ? 'bg-brand-gold w-5' : 'bg-white/60 w-2'}`}
-                      />
+                      <button key={i} onClick={(e) => { e.stopPropagation(); setActiveIndex(i); }} className={`h-2 rounded-full transition-all duration-300 ${i === activeIndex ? 'bg-brand-gold w-5' : 'bg-white/60 w-2'}`} />
                     ))}
                   </div>
                 </>
@@ -223,11 +191,7 @@ const ProductDetail = () => {
             {allImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {allImages.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveIndex(i)}
-                    className={`w-16 h-20 flex-shrink-0 overflow-hidden border-2 transition-all ${i === activeIndex ? 'border-brand-dark' : 'border-transparent opacity-50 hover:opacity-80'}`}
-                  >
+                  <button key={i} onClick={() => setActiveIndex(i)} className={`w-16 h-20 flex-shrink-0 overflow-hidden border-2 transition-all ${i === activeIndex ? 'border-brand-dark' : 'border-transparent opacity-50 hover:opacity-80'}`}>
                     <img src={formatImageUrl(img.url)} className="w-full h-full object-cover" alt="" />
                   </button>
                 ))}
@@ -237,62 +201,78 @@ const ProductDetail = () => {
 
           {/* ===== قسم التفاصيل ===== */}
           <div className="flex flex-col gap-5">
-            <div>
-              <h1 className="text-2xl font-bold text-brand-dark mb-3 leading-snug">{product.name}</h1>
 
-              {/* ✅ السعر مع الخصم */}
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-baseline gap-3">
-                  <p className="text-2xl font-bold text-brand-gold">
-                    {product.price} <span className="text-sm font-normal text-gray-400">EGP</span>
-                  </p>
-                  {/* السعر الأصلي مشطوب */}
-                  {product.original_price && (
-                    <p className="text-base text-gray-400 line-through">
-                      {product.original_price} EGP
-                    </p>
-                  )}
-                  {/* بادج نسبة الخصم جنب السعر */}
-                  {product.discount > 0 && (
-                    <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5">
-                      وفّر {product.discount}%
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={`w-4 h-4 ${i < Math.round(product.average_rating || 5) ? 'fill-brand-gold text-brand-gold' : 'text-gray-200'}`} />
-                  ))}
-                  <span className="text-xs text-gray-400 mr-1">({product.review_count || 0})</span>
-                </div>
+            <h1 className="text-2xl font-bold text-brand-dark leading-snug">{product.name}</h1>
+
+            {/* ✅ الوصف قبل السعر — فونط أوضح — Enter شغال */}
+            {product.description && (
+              <div>
+                <p className="text-sm font-bold text-brand-dark mb-2">وصف المنتج</p>
+                <p className="text-gray-700 text-base leading-loose whitespace-pre-line">
+                  {product.description}
+                </p>
               </div>
+            )}
 
+            <hr className="border-gray-100" />
+
+            {/* السعر مع الخصم */}
+            <div>
+              <div className="flex items-baseline gap-3 flex-wrap mb-2">
+                <p className="text-2xl font-bold text-brand-gold">
+                  {product.price} <span className="text-sm font-normal text-gray-400">EGP</span>
+                </p>
+                {product.original_price && (
+                  <p className="text-base text-gray-400 line-through">{product.original_price} EGP</p>
+                )}
+                {product.discount > 0 && (
+                  <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5">
+                    وفّر {product.discount}%
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className={`w-4 h-4 ${i < Math.round(product.average_rating || 5) ? 'fill-brand-gold text-brand-gold' : 'text-gray-200'}`} />
+                ))}
+                <span className="text-xs text-gray-400 mr-1">({product.review_count || 0})</span>
+              </div>
               {product.total_sold > 0 && (
                 <p className="text-sm text-gray-400 mt-2 flex items-center gap-1">
-                  🛍️ تم بيع
-                  <span className="font-bold text-brand-dark">{product.total_sold}</span>
-                  قطعة
+                  🛍️ تم بيع <span className="font-bold text-brand-dark">{product.total_sold}</span> قطعة
                 </p>
               )}
             </div>
 
             <hr className="border-gray-100" />
 
+            {/* ✅ الألوان — صور thumbnails بدل دوائر */}
             {product.other_colors && product.other_colors.length > 0 && (
               <div>
-                <p className="text-sm font-bold text-brand-dark mb-3">اللون</p>
-                <div className="flex flex-wrap gap-3">
-                  <div className="w-8 h-8 rounded-full border-2 border-brand-dark" style={{ backgroundColor: product.color_hex }} />
+                <p className="text-sm font-bold text-brand-dark mb-3">
+                  اللون: <span className="text-brand-gold">{product.color_name}</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {/* اللون الحالي */}
+                  <div className="w-16 h-20 border-2 border-brand-dark overflow-hidden flex-shrink-0">
+                    <img src={formatImageUrl(product.image)} className="w-full h-full object-cover" alt={product.color_name} />
+                  </div>
+                  {/* الألوان التانية */}
                   {product.other_colors.map((variant) => (
-                    <Link key={variant.id} to={`/product/${variant.id}`}
-                      className="w-8 h-8 rounded-full border border-gray-200 hover:border-brand-dark transition-all"
-                      style={{ backgroundColor: variant.color_hex }}
-                    />
+                    <Link
+                      key={variant.id}
+                      to={`/product/${variant.id}`}
+                      className="w-16 h-20 border-2 border-transparent hover:border-brand-dark transition-all overflow-hidden flex-shrink-0 opacity-60 hover:opacity-100"
+                      title={variant.color_name}
+                    >
+                      <img src={formatImageUrl(variant.image)} className="w-full h-full object-cover" alt={variant.color_name} />
+                    </Link>
                   ))}
                 </div>
               </div>
             )}
 
+            {/* المقاسات */}
             <div>
               <div className="flex justify-between items-center mb-3">
                 <p className="text-sm font-bold text-brand-dark">المقاس</p>
@@ -319,13 +299,13 @@ const ProductDetail = () => {
               </div>
             </div>
 
+            {/* الكمية + إضافة للسلة */}
             <div className="flex gap-3">
               <div className="flex items-center border border-gray-200">
                 <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-3 hover:bg-gray-50 text-lg">−</button>
                 <span className="px-6 py-3 font-bold text-base border-x border-gray-200">{quantity}</span>
                 <button onClick={() => setQuantity(q => q + 1)} className="px-4 py-3 hover:bg-gray-50 text-lg">+</button>
               </div>
-
               <button
                 onClick={handleAddToCart}
                 disabled={!selectedVariant || Number(selectedVariant?.stock) <= 0}
@@ -340,13 +320,7 @@ const ProductDetail = () => {
               </button>
             </div>
 
-            {product.description && (
-              <div className="border-t border-gray-100 pt-5">
-                <p className="text-sm font-bold text-brand-dark mb-2">وصف المنتج</p>
-                <p className="text-gray-500 text-sm leading-relaxed">{product.description}</p>
-              </div>
-            )}
-
+            {/* شحن وضمان */}
             <div className="border border-gray-100 p-4 grid grid-cols-2 gap-4">
               <div className="flex items-center gap-3">
                 <Truck className="w-5 h-5 text-brand-gold flex-shrink-0" />
@@ -413,9 +387,7 @@ const ProductDetail = () => {
                     placeholder="شاركنا رأيك..."
                   />
                 </div>
-                <button type="submit"
-                  className="w-full bg-brand-dark text-white py-3 text-sm font-bold uppercase tracking-wider hover:bg-brand-gold hover:text-brand-dark transition-all"
-                >
+                <button type="submit" className="w-full bg-brand-dark text-white py-3 text-sm font-bold uppercase tracking-wider hover:bg-brand-gold hover:text-brand-dark transition-all">
                   إرسال التقييم
                 </button>
               </form>
