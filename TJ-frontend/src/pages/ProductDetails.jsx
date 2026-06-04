@@ -94,7 +94,6 @@ const ProductDetail = () => {
     }
   };
 
-  // ✅ Buy Now
   const handleBuyNow = async () => {
     if (!selectedVariant) { toast.error("يرجى اختيار المقاس أولاً"); return; }
     if (Number(selectedVariant.stock) <= 0) { toast.error("هذا المقاس غير متوفر حالياً"); return; }
@@ -218,7 +217,6 @@ const ProductDetail = () => {
 
             <h1 className="text-2xl font-bold text-brand-dark leading-snug">{product.name}</h1>
 
-            {/* الوصف قبل السعر */}
             {product.description && (
               <div>
                 <p className="text-sm font-bold text-brand-dark mb-2">وصف المنتج</p>
@@ -313,40 +311,42 @@ const ProductDetail = () => {
 
             {/* ===== الكمية + الأزرار ===== */}
             <div className="flex flex-col gap-3">
-              <div className="flex gap-3">
-                {/* الكمية */}
-                <div className="flex items-center border border-gray-200">
-                  <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-3 hover:bg-gray-50 text-lg">−</button>
-                  <span className="px-6 py-3 font-bold text-base border-x border-gray-200">{quantity}</span>
-                  <button onClick={() => setQuantity(q => q + 1)} className="px-4 py-3 hover:bg-gray-50 text-lg">+</button>
-                </div>
 
-                {/* أضف للسلة */}
-                <button
-                  onClick={handleAddToCart}
-                  disabled={isUnavailable}
-                  className={`flex-1 py-3 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all border
-                    ${isUnavailable
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-100'
-                      : 'border-brand-dark text-brand-dark hover:bg-brand-dark hover:text-white'
-                    }`}
-                >
-                  <ShoppingCart className="w-4 h-4" />
-                  {isUnavailable ? 'غير متوفر' : 'أضف للسلة'}
-                </button>
+              {/* الكمية */}
+              <div className="flex items-center gap-3">
+                <p className="text-sm font-bold text-brand-dark">الكمية:</p>
+                <div className="flex items-center border border-gray-200">
+                  <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-4 py-3 hover:bg-gray-50 text-lg font-bold text-brand-dark">−</button>
+                  <span className="px-6 py-3 font-bold text-base border-x border-gray-200 min-w-[50px] text-center">{quantity}</span>
+                  <button onClick={() => setQuantity(q => q + 1)} className="px-4 py-3 hover:bg-gray-50 text-lg font-bold text-brand-dark">+</button>
+                </div>
               </div>
 
-              {/* ✅ Buy Now */}
+              {/* ✅ زرار أضف للسلة — أحمر */}
+              <button
+                onClick={handleAddToCart}
+                disabled={isUnavailable}
+                className={`w-full py-4 text-base font-bold flex items-center justify-center gap-2 transition-all duration-200
+                  ${isUnavailable
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-[#C0392B] hover:bg-[#a93226] text-white shadow-md hover:shadow-lg'
+                  }`}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {isUnavailable ? 'غير متوفر' : 'أضف إلى السلة'}
+              </button>
+
+              {/* ✅ زرار اشتري الآن — دهبي */}
               <button
                 onClick={handleBuyNow}
                 disabled={isUnavailable}
-                className={`w-full py-4 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all
+                className={`w-full py-4 text-base font-bold flex items-center justify-center gap-2 transition-all duration-200
                   ${isUnavailable
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-brand-dark text-white hover:bg-brand-gold hover:text-brand-dark'
+                    : 'bg-[#D4AF37] hover:bg-[#c9a227] text-[#0B0B0B] shadow-md hover:shadow-lg'
                   }`}
               >
-                <Zap className="w-4 h-4" />
+                <Zap className="w-5 h-5" />
                 اشتري الآن
               </button>
             </div>
