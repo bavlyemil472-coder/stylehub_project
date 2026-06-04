@@ -3,6 +3,28 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from .models import product, Category, Section, SubCategory, Size, ProductVariant, ProductImage, Review, AnnouncementBar
 
+# ✅ ضغط الصور
+from PIL import Image
+import io
+from django.core.files.uploadedfile import InMemoryUploadedFile
+
+
+def compress_image(img_file, quality=75, max_size_mb=8):
+    """بيضغط الصورة لـ JPEG بجودة معينة"""
+    try:
+        img = Image.open(img_file)
+        img = img.convert('RGB')
+        output = io.BytesIO()
+        img.save(output, format='JPEG', quality=quality, optimize=True)
+        output.seek(0)
+        file_name = f"{img_file.name.rsplit('.', 1)[0]}.jpg"
+        return InMemoryUploadedFile(
+            output, 'ImageField', file_name,
+            'image/jpeg', output.getbuffer().nbytes, None
+        )
+    except Exception:
+        return img_file  # لو فشل الضغط ارجع الأصلي
+
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
@@ -34,8 +56,7 @@ class SectionAdmin(admin.ModelAdmin):
     image_preview.short_description = "صورة"
 
     def categories_count(self, obj):
-        count = obj.categories.count()
-        return f"{count} كاتيجوري"
+        return f"{obj.categories.count()} كاتيجوري"
     categories_count.short_description = "الكاتيجوريز"
 
     def description_short(self, obj):
@@ -58,8 +79,7 @@ class CategoryAdmin(admin.ModelAdmin):
     image_preview.short_description = "صورة"
 
     def subcategories_count(self, obj):
-        count = obj.subcategories.count()
-        return f"{count} قسم فرعي"
+        return f"{obj.subcategories.count()} قسم فرعي"
     subcategories_count.short_description = "الأقسام الفرعية"
 
     def description_short(self, obj):
@@ -82,8 +102,7 @@ class SubCategoryAdmin(admin.ModelAdmin):
     image_preview.short_description = "صورة"
 
     def products_count(self, obj):
-        count = obj.products.count()
-        return f"{count} منتج"
+        return f"{obj.products.count()} منتج"
     products_count.short_description = "المنتجات"
 
 
@@ -110,6 +129,12 @@ class ProductAdmin(admin.ModelAdmin):
         total = sum(variant.stock for variant in obj.variants.all())
         return f"{total} قطع"
     total_stock_display.short_description = "إجمالي المخزون"
+
+    # ✅ ضغط الصورة الرئيسية أوتوماتيك قبل الرفع
+    def save_model(self, request, obj, form, change):
+        if 'image' in request.FILES:
+            obj.image = compress_image(request.FILES['image'])
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Size)
@@ -143,6 +168,12 @@ class ProductImageAdmin(admin.ModelAdmin):
         return "-"
     image_preview.short_description = "Preview"
 
+    # ✅ ضغط الصور الإضافية أوتوماتيك
+    def save_model(self, request, obj, form, change):
+        if 'image' in request.FILES:
+            obj.image = compress_image(request.FILES['image'])
+        super().save_model(request, obj, form, change)
+
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
@@ -151,7 +182,6 @@ class ReviewAdmin(admin.ModelAdmin):
     search_fields = ('product__name',)
 
 
-# ✅ الجديد: الشريط الإعلاني
 @admin.register(AnnouncementBar)
 class AnnouncementBarAdmin(admin.ModelAdmin):
     list_display = ('text_preview', 'is_active', 'created_at')
