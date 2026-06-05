@@ -56,7 +56,7 @@ const Footer = () => {
         {/* البراند */}
         <div className="md:col-span-4 space-y-5">
           <div>
-            <h2 className="text-3xl font-black italic text-brand-gold tracking-tight mb-1">TRES JOLIE</h2>
+            <h2 className="font-script text-5xl text-brand-gold mb-1">Tres Jolie</h2>
             <p className="text-xs text-gray-500 uppercase tracking-widest">Family Wear • Since 1994</p>
           </div>
           <p className="text-gray-400 text-sm leading-7">
