@@ -8,14 +8,15 @@ export default {
     extend: {
       colors: {
         brand: {
-          gold: '#D4AF37',   // اللون الذهبي من اللوجو
-          dark: '#0B0B0B',   // أسود فخم
+          gold: '#D4AF37',
+          dark: '#0B0B0B',
           gray: '#F4F4F4',
         }
       },
       fontFamily: {
-        'display': ['Playfair Display', 'serif'], // خط للعناوين فخم
-        'body': ['Montserrat', 'sans-serif'],    // خط للنصوص مريح
+        'display': ['Playfair Display', 'serif'],
+        'body': ['Montserrat', 'sans-serif'],
+        'script': ['Great Vibes', 'cursive'], // ✅ فونت Tres Jolie
       }
     },
   },
