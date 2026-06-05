@@ -90,7 +90,7 @@ const Navbar = () => {
                 <div className="absolute inset-0 rounded-full bg-brand-gold/20 animate-ping opacity-20 group-hover:opacity-40"></div>
               </div>
               <div className="flex flex-col leading-none">
-                <span className="text-xl font-black italic tracking-tighter text-brand-gold font-display">TRES JOLIE</span>
+                <span className="font-script text-3xl text-brand-gold" style={{letterSpacing: "0.02em"}}>Tres Jolie</span>
                 <span className="text-[7px] uppercase tracking-[0.4em] text-gray-500 font-bold">Family Wear</span>
               </div>
             </Link>
@@ -182,7 +182,7 @@ const Navbar = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center border-b border-white/5 pb-6">
-              <span className="text-brand-gold font-display italic font-bold">Menu</span>
+              <span className="font-script text-2xl text-brand-gold">Tres Jolie</span>
               <button onClick={() => setIsOpen(false)}><X className="w-5 h-5 text-gray-500" /></button>
             </div>
 
