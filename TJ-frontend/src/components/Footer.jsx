@@ -57,7 +57,7 @@ const Footer = () => {
         <div className="md:col-span-4 space-y-5">
           <div>
             <h2 className="font-script text-5xl text-brand-gold mb-1">Tres Jolie</h2>
-            <p className="text-xs text-gray-500 uppercase tracking-widest">Family Wear • Since 1994</p>
+            <p className="text-xs text-gray-500 uppercase tracking-widest">Family Wear • Since 1996</p>
           </div>
           <p className="text-gray-400 text-sm leading-7">
             الجودة ليست مجرد فعل، بل هي عادة نغزلها في كل قطعة. أكثر من 30 عام من الخبرة في عالم الأزياء العائلية.
