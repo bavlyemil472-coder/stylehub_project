@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from products.models import ProductVariant
+
 User = get_user_model()
+
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -23,13 +25,17 @@ class Order(models.Model):
     ]
 
     user = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        related_name="orders",
-        null=True,    # ✅ guest
-        blank=True
+        User, on_delete=models.SET_NULL,
+        related_name="orders", null=True, blank=True
     )
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    # ✅ الجديد: سعر الشحن منفصل
+    shipping_price = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00,
+        verbose_name="سعر الشحن"
+    )
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending", db_index=True)
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default="unpaid", db_index=True)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default="visa")
@@ -60,6 +66,16 @@ class Order(models.Model):
     @property
     def is_paid(self):
         return self.payment_status == "paid"
+
+    # ✅ سعر المنتجات بدون الشحن
+    @property
+    def subtotal(self):
+        return self.total_amount - self.shipping_price
+
+    # ✅ الإجمالي الكامل مع الشحن
+    @property
+    def grand_total(self):
+        return self.total_amount
 
 
 class OrderItem(models.Model):
