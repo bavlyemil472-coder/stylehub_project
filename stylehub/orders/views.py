@@ -32,7 +32,6 @@ class CreateOrderView(APIView):
             cart = Cart.objects.filter(user=user).first()
             cart_items_data = list(cart.items.all()) if cart else []
         else:
-            # ✅ جرب الـ session الأول
             session_cart = request.session.get('cart', {})
             cart_items_data = []
 
@@ -44,7 +43,6 @@ class CreateOrderView(APIView):
                     except ProductVariant.DoesNotExist:
                         pass
 
-            # ✅ لو الـ session فاضية جرب الـ guest_cart من الـ request
             if not cart_items_data:
                 guest_cart_raw = request.data.get('guest_cart', '[]')
                 try:
@@ -71,6 +69,10 @@ class CreateOrderView(APIView):
         if not all([full_name, phone, address]):
             return Response({'error': 'يرجى إكمال بيانات الشحن (الاسم، الهاتف، العنوان).'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # ✅ جيب سعر الشحن من الـ ShippingRate
+        shipping_rate = ShippingRate.objects.filter(city_name=city).first()
+        shipping_price = float(shipping_rate.price) if shipping_rate else 0.0
+
         order = Order.objects.create(
             user=user,
             full_name=full_name,
@@ -78,6 +80,7 @@ class CreateOrderView(APIView):
             address=address,
             city=city,
             payment_method=payment_method,
+            shipping_price=shipping_price,  # ✅ حفظ سعر الشحن
             total_amount=0,
             payment_status='unpaid' if payment_method == 'visa' else 'pending',
             payment_screenshot=payment_screenshot
@@ -112,7 +115,8 @@ class CreateOrderView(APIView):
             variant.stock -= quantity
             variant.save()
 
-        order.total_amount = total
+        # ✅ الإجمالي = سعر المنتجات + الشحن
+        order.total_amount = total + shipping_price
         order.save()
 
         if user and cart:
@@ -130,7 +134,7 @@ class CreateOrderView(APIView):
         if payment_method == 'visa':
             try:
                 auth_token = get_auth_token()
-                amount_cents = int(total * 100)
+                amount_cents = int(order.total_amount * 100)
                 paymob_order_id = create_payment_order(auth_token, amount_cents)
 
                 billing_data = {
@@ -290,6 +294,7 @@ class AdminSalesChartView(APIView):
 
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+
 
 def send_order_confirmation_email(order):
     subject = f'تأكيد طلبك من Tres Jolie - أوردر رقم #{order.id}'
