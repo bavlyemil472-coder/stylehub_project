@@ -39,10 +39,15 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
+    # ✅ الجديد: subtotal منفصل
+    subtotal = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = '__all__'
+
+    def get_subtotal(self, obj):
+        return float(obj.total_amount) - float(obj.shipping_price)
 
 
 class ShippingRateSerializer(serializers.ModelSerializer):
