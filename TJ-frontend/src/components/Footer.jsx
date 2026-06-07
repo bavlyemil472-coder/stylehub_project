@@ -62,25 +62,30 @@ const Footer = () => {
           <p className="text-gray-400 text-sm leading-7">
             الجودة ليست مجرد فعل، بل هي عادة نغزلها في كل قطعة. أكثر من 30 عام من الخبرة في عالم الأزياء العائلية.
           </p>
+
           {/* السوشيال */}
           <div className="flex gap-3 pt-2">
+
+            {/* ✅ فيسبوك — أزرق */}
             <a
               href={socialLinks.facebook}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-white/5 hover:bg-brand-gold/20 border border-white/10 hover:border-brand-gold/40 px-4 py-2.5 rounded-lg transition-all group"
+              className="flex items-center gap-2 bg-[#1877F2]/15 hover:bg-[#1877F2]/30 border border-[#1877F2]/30 hover:border-[#1877F2]/60 px-4 py-2.5 rounded-lg transition-all group"
             >
-              <Facebook className="w-4 h-4 text-gray-400 group-hover:text-brand-gold transition-colors" />
-              <span className="text-xs font-semibold text-gray-400 group-hover:text-brand-gold transition-colors">Facebook</span>
+              <Facebook className="w-4 h-4 text-[#1877F2] transition-colors" />
+              <span className="text-xs font-semibold text-[#1877F2]">Facebook</span>
             </a>
+
+            {/* ✅ واتساب — أخضر */}
             <a
               href={socialLinks.whatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-white/5 hover:bg-[#25D366]/10 border border-white/10 hover:border-[#25D366]/40 px-4 py-2.5 rounded-lg transition-all group"
+              className="flex items-center gap-2 bg-[#25D366]/15 hover:bg-[#25D366]/30 border border-[#25D366]/30 hover:border-[#25D366]/60 px-4 py-2.5 rounded-lg transition-all group"
             >
-              <MessageCircle className="w-4 h-4 text-gray-400 group-hover:text-[#25D366] transition-colors" />
-              <span className="text-xs font-semibold text-gray-400 group-hover:text-[#25D366] transition-colors">WhatsApp</span>
+              <MessageCircle className="w-4 h-4 text-[#25D366] transition-colors" />
+              <span className="text-xs font-semibold text-[#25D366]">WhatsApp</span>
             </a>
           </div>
         </div>
