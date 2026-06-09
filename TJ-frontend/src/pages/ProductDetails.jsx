@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { ShoppingCart, ChevronLeft, ChevronRight, ShieldCheck, Truck, Star, X, ZoomIn, Zap } from 'lucide-react';
+import { ShoppingCart, ChevronLeft, ChevronRight, ShieldCheck, Truck, Star, X, ZoomIn, Zap, Eye } from 'lucide-react';
 import { formatImageUrl } from '../utils/helpers';
 
 const ProductDetail = () => {
@@ -15,6 +15,7 @@ const ProductDetail = () => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [lightbox, setLightbox] = useState(false);
+  const [viewers, setViewers] = useState(null); // ✅ عداد المشاهدين
   const touchStartX = useRef(null);
   const autoPlayRef = useRef(null);
 
@@ -40,6 +41,25 @@ const ProductDetail = () => {
         }
       })
       .catch(() => toast.error("فشل في تحميل تفاصيل المنتج"));
+  }, [id]);
+
+  // ✅ عداد المشاهدين — سجّل الزيارة وابدأ الـ polling
+  useEffect(() => {
+    if (!id) return;
+
+    // سجّل الزيارة
+    api.post(`/products/${id}/viewers/`)
+      .then(res => setViewers(res.data.viewers))
+      .catch(() => {});
+
+    // polling كل 30 ثانية
+    const interval = setInterval(() => {
+      api.get(`/products/${id}/viewers/`)
+        .then(res => setViewers(res.data.viewers))
+        .catch(() => {});
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [id]);
 
   const getAllImages = () => {
@@ -243,16 +263,31 @@ const ProductDetail = () => {
                   </span>
                 )}
               </div>
+
               <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className={`w-4 h-4 ${i < Math.round(product.average_rating || 5) ? 'fill-brand-gold text-brand-gold' : 'text-gray-200'}`} />
                 ))}
                 <span className="text-xs text-gray-400 mr-1">({product.review_count || 0})</span>
               </div>
+
               {product.total_sold > 0 && (
                 <p className="text-sm text-gray-400 mt-2 flex items-center gap-1">
                   🛍️ تم بيع <span className="font-bold text-brand-dark">{product.total_sold}</span> قطعة
                 </p>
+              )}
+
+              {/* ✅ عداد المشاهدين */}
+              {viewers !== null && (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                  </span>
+                  <p className="text-sm text-gray-500">
+                    <span className="font-bold text-brand-dark">{viewers}</span> شخص يشاهد هذا المنتج الآن
+                  </p>
+                </div>
               )}
             </div>
 
@@ -311,8 +346,6 @@ const ProductDetail = () => {
 
             {/* ===== الكمية + الأزرار ===== */}
             <div className="flex flex-col gap-3">
-
-              {/* الكمية */}
               <div className="flex items-center gap-3">
                 <p className="text-sm font-bold text-brand-dark">الكمية:</p>
                 <div className="flex items-center border border-gray-200">
@@ -322,29 +355,21 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              {/* ✅ زرار أضف للسلة — أحمر */}
               <button
                 onClick={handleAddToCart}
                 disabled={isUnavailable}
                 className={`w-full py-4 text-base font-bold flex items-center justify-center gap-2 transition-all duration-200
-                  ${isUnavailable
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-[#C0392B] hover:bg-[#a93226] text-white shadow-md hover:shadow-lg'
-                  }`}
+                  ${isUnavailable ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#C0392B] hover:bg-[#a93226] text-white shadow-md hover:shadow-lg'}`}
               >
                 <ShoppingCart className="w-5 h-5" />
                 {isUnavailable ? 'غير متوفر' : 'أضف إلى السلة'}
               </button>
 
-              {/* ✅ زرار اشتري الآن — دهبي */}
               <button
                 onClick={handleBuyNow}
                 disabled={isUnavailable}
                 className={`w-full py-4 text-base font-bold flex items-center justify-center gap-2 transition-all duration-200
-                  ${isUnavailable
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-[#D4AF37] hover:bg-[#c9a227] text-[#0B0B0B] shadow-md hover:shadow-lg'
-                  }`}
+                  ${isUnavailable ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#D4AF37] hover:bg-[#c9a227] text-[#0B0B0B] shadow-md hover:shadow-lg'}`}
               >
                 <Zap className="w-5 h-5" />
                 اشتري الآن
