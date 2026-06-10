@@ -87,7 +87,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = ['id', 'user_name', 'rating', 'comment', 'created_at']
 
 
-# ✅ Serializer مخصوص للـ Related Products — خفيف بدون تفاصيل كتير
 class RelatedProductSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     original_price = serializers.SerializerMethodField()
@@ -120,7 +119,7 @@ class ProductSerializer(serializers.ModelSerializer):
     other_colors = serializers.SerializerMethodField()
     total_sold = serializers.SerializerMethodField()
     original_price = serializers.SerializerMethodField()
-    related_products = serializers.SerializerMethodField()  # ✅ الجديد
+    related_products = serializers.SerializerMethodField()
 
     class Meta:
         model = product
@@ -170,26 +169,31 @@ class ProductSerializer(serializers.ModelSerializer):
         return ColorVariantSerializer(qs, many=True).data
 
     def get_related_products(self, obj):
-        """
-        بيجيب 4 منتجات من نفس الكاتيجوري أو الـ subcategory
-        مع استثناء المنتج الحالي
-        """
+        import random
+
         qs = product.objects.filter(is_available=True).exclude(id=obj.id)
 
-        # لو في subcategory جيب من نفس الـ subcategory الأول
+        # جيب من نفس الـ subcategory الأول
         if obj.subcategory:
-            related = qs.filter(subcategory=obj.subcategory)[:4]
-            if related.count() >= 2:
-                return RelatedProductSerializer(related, many=True).data
+            related = list(qs.filter(subcategory=obj.subcategory))
+            if len(related) >= 2:
+                return RelatedProductSerializer(
+                    random.sample(related, min(5, len(related))), many=True
+                ).data
 
-        # لو في category جيب من نفس الـ category
+        # لو في category جيب منها
         if obj.category:
-            related = qs.filter(category=obj.category)[:4]
-            if related.count() >= 1:
-                return RelatedProductSerializer(related, many=True).data
+            related = list(qs.filter(category=obj.category))
+            if len(related) >= 1:
+                return RelatedProductSerializer(
+                    random.sample(related, min(5, len(related))), many=True
+                ).data
 
-        # fallback — أي 4 منتجات
-        return RelatedProductSerializer(qs.order_by('-created_at')[:4], many=True).data
+        # fallback — أي 5 منتجات عشوائية
+        related = list(qs)
+        return RelatedProductSerializer(
+            random.sample(related, min(5, len(related))), many=True
+        ).data
 
     def create(self, validated_data):
         category_id = validated_data.pop('category_id', None)
