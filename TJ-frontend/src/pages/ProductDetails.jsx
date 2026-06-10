@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { ShoppingCart, ChevronLeft, ChevronRight, ShieldCheck, Truck, Star, X, ZoomIn, Zap, Eye } from 'lucide-react';
+import { ShoppingCart, ChevronLeft, ChevronRight, ShieldCheck, Truck, Star, X, ZoomIn, Zap } from 'lucide-react';
 import { formatImageUrl } from '../utils/helpers';
 
 const ProductDetail = () => {
@@ -15,7 +15,7 @@ const ProductDetail = () => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [lightbox, setLightbox] = useState(false);
-  const [viewers, setViewers] = useState(null); // ✅ عداد المشاهدين
+  const [viewers, setViewers] = useState(null);
   const touchStartX = useRef(null);
   const autoPlayRef = useRef(null);
 
@@ -43,22 +43,16 @@ const ProductDetail = () => {
       .catch(() => toast.error("فشل في تحميل تفاصيل المنتج"));
   }, [id]);
 
-  // ✅ عداد المشاهدين — سجّل الزيارة وابدأ الـ polling
   useEffect(() => {
     if (!id) return;
-
-    // سجّل الزيارة
     api.post(`/products/${id}/viewers/`)
       .then(res => setViewers(res.data.viewers))
       .catch(() => {});
-
-    // polling كل 30 ثانية
     const interval = setInterval(() => {
       api.get(`/products/${id}/viewers/`)
         .then(res => setViewers(res.data.viewers))
         .catch(() => {});
     }, 30000);
-
     return () => clearInterval(interval);
   }, [id]);
 
@@ -81,16 +75,8 @@ const ProductDetail = () => {
     return () => clearInterval(autoPlayRef.current);
   }, [allImages.length, lightbox, product]);
 
-  const prevImage = () => {
-    clearInterval(autoPlayRef.current);
-    setActiveIndex(i => (i === 0 ? allImages.length - 1 : i - 1));
-  };
-
-  const nextImage = () => {
-    clearInterval(autoPlayRef.current);
-    setActiveIndex(i => (i === allImages.length - 1 ? 0 : i + 1));
-  };
-
+  const prevImage = () => { clearInterval(autoPlayRef.current); setActiveIndex(i => (i === 0 ? allImages.length - 1 : i - 1)); };
+  const nextImage = () => { clearInterval(autoPlayRef.current); setActiveIndex(i => (i === allImages.length - 1 ? 0 : i + 1)); };
   const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchEnd = (e) => {
     if (touchStartX.current === null) return;
@@ -151,7 +137,6 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-white" dir="rtl">
 
-      {/* Lightbox */}
       {lightbox && (
         <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4" onClick={() => setLightbox(false)}>
           <button className="absolute top-4 right-4 text-white hover:text-brand-gold transition-colors z-10" onClick={() => setLightbox(false)}>
@@ -172,7 +157,6 @@ const ProductDetail = () => {
         </div>
       )}
 
-      {/* Breadcrumb */}
       <div className="border-b border-gray-100 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-sm text-gray-400">
           <button onClick={() => navigate('/shop')} className="hover:text-brand-dark transition-colors">المنتجات</button>
@@ -184,26 +168,16 @@ const ProductDetail = () => {
       <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
-          {/* ===== قسم الصور ===== */}
+          {/* الصور */}
           <div className="space-y-3">
-            <div
-              className="relative overflow-hidden bg-gray-50 aspect-[3/4] cursor-zoom-in group"
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              onClick={() => setLightbox(true)}
-            >
+            <div className="relative overflow-hidden bg-gray-50 aspect-[3/4] cursor-zoom-in group" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onClick={() => setLightbox(true)}>
               <img src={formatImageUrl(allImages[activeIndex]?.url)} alt={product.name} className="w-full h-full object-cover transition-opacity duration-500" />
-
               {product.discount > 0 && (
-                <div className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 z-10 shadow-md">
-                  -{product.discount}%
-                </div>
+                <div className="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 z-10 shadow-md">-{product.discount}%</div>
               )}
-
               <div className="absolute top-3 left-3 bg-white/80 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                 <ZoomIn className="w-4 h-4 text-brand-dark" />
               </div>
-
               {allImages.length > 1 && (
                 <>
                   <button onClick={(e) => { e.stopPropagation(); prevImage(); }} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white w-10 h-10 flex items-center justify-center shadow-md transition-all">
@@ -220,7 +194,6 @@ const ProductDetail = () => {
                 </>
               )}
             </div>
-
             {allImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {allImages.map((img, i) => (
@@ -232,52 +205,38 @@ const ProductDetail = () => {
             )}
           </div>
 
-          {/* ===== قسم التفاصيل ===== */}
+          {/* التفاصيل */}
           <div className="flex flex-col gap-5">
-
             <h1 className="text-2xl font-bold text-brand-dark leading-snug">{product.name}</h1>
 
             {product.description && (
               <div>
                 <p className="text-sm font-bold text-brand-dark mb-2">وصف المنتج</p>
-                <p className="text-gray-700 text-base leading-loose whitespace-pre-line">
-                  {product.description}
-                </p>
+                <p className="text-gray-700 text-base leading-loose whitespace-pre-line">{product.description}</p>
               </div>
             )}
 
             <hr className="border-gray-100" />
 
-            {/* السعر */}
             <div>
               <div className="flex items-baseline gap-3 flex-wrap mb-2">
                 <p className="text-2xl font-bold text-brand-gold">
                   {product.price} <span className="text-sm font-normal text-gray-400">EGP</span>
                 </p>
-                {product.original_price && (
-                  <p className="text-base text-gray-400 line-through">{product.original_price} EGP</p>
-                )}
-                {product.discount > 0 && (
-                  <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5">
-                    وفّر {product.discount}%
-                  </span>
-                )}
+                {product.original_price && <p className="text-base text-gray-400 line-through">{product.original_price} EGP</p>}
+                {product.discount > 0 && <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5">وفّر {product.discount}%</span>}
               </div>
-
               <div className="flex items-center gap-1">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className={`w-4 h-4 ${i < Math.round(product.average_rating || 5) ? 'fill-brand-gold text-brand-gold' : 'text-gray-200'}`} />
                 ))}
                 <span className="text-xs text-gray-400 mr-1">({product.review_count || 0})</span>
               </div>
-
               {product.total_sold > 0 && (
                 <p className="text-sm text-gray-400 mt-2 flex items-center gap-1">
                   🛍️ تم بيع <span className="font-bold text-brand-dark">{product.total_sold}</span> قطعة
                 </p>
               )}
-
-              {/* ✅ عداد المشاهدين */}
               {viewers !== null && (
                 <div className="flex items-center gap-2 mt-2">
                   <span className="relative flex h-2 w-2">
@@ -293,23 +252,15 @@ const ProductDetail = () => {
 
             <hr className="border-gray-100" />
 
-            {/* الألوان thumbnails */}
             {product.other_colors && product.other_colors.length > 0 && (
               <div>
-                <p className="text-sm font-bold text-brand-dark mb-3">
-                  اللون: <span className="text-brand-gold">{product.color_name}</span>
-                </p>
+                <p className="text-sm font-bold text-brand-dark mb-3">اللون: <span className="text-brand-gold">{product.color_name}</span></p>
                 <div className="flex flex-wrap gap-2">
                   <div className="w-16 h-20 border-2 border-brand-dark overflow-hidden flex-shrink-0">
                     <img src={formatImageUrl(product.image)} className="w-full h-full object-cover" alt={product.color_name} />
                   </div>
                   {product.other_colors.map((variant) => (
-                    <Link
-                      key={variant.id}
-                      to={`/product/${variant.id}`}
-                      className="w-16 h-20 border-2 border-transparent hover:border-brand-dark transition-all overflow-hidden flex-shrink-0 opacity-60 hover:opacity-100"
-                      title={variant.color_name}
-                    >
+                    <Link key={variant.id} to={`/product/${variant.id}`} className="w-16 h-20 border-2 border-transparent hover:border-brand-dark transition-all overflow-hidden flex-shrink-0 opacity-60 hover:opacity-100" title={variant.color_name}>
                       <img src={formatImageUrl(variant.image)} className="w-full h-full object-cover" alt={variant.color_name} />
                     </Link>
                   ))}
@@ -317,7 +268,6 @@ const ProductDetail = () => {
               </div>
             )}
 
-            {/* المقاسات */}
             <div>
               <div className="flex justify-between items-center mb-3">
                 <p className="text-sm font-bold text-brand-dark">المقاس</p>
@@ -327,16 +277,8 @@ const ProductDetail = () => {
                 {product.variants.map(v => {
                   const isOutOfStock = Number(v.stock) <= 0;
                   return (
-                    <button key={v.id} type="button" disabled={isOutOfStock}
-                      onClick={() => !isOutOfStock && setSelectedVariant(v)}
-                      className={`min-w-[52px] h-12 px-3 border text-sm font-medium transition-all
-                        ${isOutOfStock
-                          ? 'border-gray-100 text-gray-300 cursor-not-allowed line-through'
-                          : selectedVariant?.id === v.id
-                            ? 'border-brand-dark bg-brand-dark text-white'
-                            : 'border-gray-200 text-brand-dark hover:border-brand-dark'
-                        }`}
-                    >
+                    <button key={v.id} type="button" disabled={isOutOfStock} onClick={() => !isOutOfStock && setSelectedVariant(v)}
+                      className={`min-w-[52px] h-12 px-3 border text-sm font-medium transition-all ${isOutOfStock ? 'border-gray-100 text-gray-300 cursor-not-allowed line-through' : selectedVariant?.id === v.id ? 'border-brand-dark bg-brand-dark text-white' : 'border-gray-200 text-brand-dark hover:border-brand-dark'}`}>
                       {v.size_name}
                     </button>
                   );
@@ -344,7 +286,6 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* ===== الكمية + الأزرار ===== */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
                 <p className="text-sm font-bold text-brand-dark">الكمية:</p>
@@ -355,48 +296,71 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              <button
-                onClick={handleAddToCart}
-                disabled={isUnavailable}
-                className={`w-full py-4 text-base font-bold flex items-center justify-center gap-2 transition-all duration-200
-                  ${isUnavailable ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#C0392B] hover:bg-[#a93226] text-white shadow-md hover:shadow-lg'}`}
-              >
+              <button onClick={handleAddToCart} disabled={isUnavailable}
+                className={`w-full py-4 text-base font-bold flex items-center justify-center gap-2 transition-all duration-200 ${isUnavailable ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#C0392B] hover:bg-[#a93226] text-white shadow-md hover:shadow-lg'}`}>
                 <ShoppingCart className="w-5 h-5" />
                 {isUnavailable ? 'غير متوفر' : 'أضف إلى السلة'}
               </button>
 
-              <button
-                onClick={handleBuyNow}
-                disabled={isUnavailable}
-                className={`w-full py-4 text-base font-bold flex items-center justify-center gap-2 transition-all duration-200
-                  ${isUnavailable ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#D4AF37] hover:bg-[#c9a227] text-[#0B0B0B] shadow-md hover:shadow-lg'}`}
-              >
+              <button onClick={handleBuyNow} disabled={isUnavailable}
+                className={`w-full py-4 text-base font-bold flex items-center justify-center gap-2 transition-all duration-200 ${isUnavailable ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-[#D4AF37] hover:bg-[#c9a227] text-[#0B0B0B] shadow-md hover:shadow-lg'}`}>
                 <Zap className="w-5 h-5" />
                 اشتري الآن
               </button>
             </div>
 
-            {/* شحن وضمان */}
             <div className="border border-gray-100 p-4 grid grid-cols-2 gap-4">
               <div className="flex items-center gap-3">
                 <Truck className="w-5 h-5 text-brand-gold flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-bold text-brand-dark">شحن سريع</p>
-                  <p className="text-xs text-gray-400">خلال 48 ساعة</p>
-                </div>
+                <div><p className="text-sm font-bold text-brand-dark">شحن سريع</p><p className="text-xs text-gray-400">خلال 48 ساعة</p></div>
               </div>
               <div className="flex items-center gap-3">
                 <ShieldCheck className="w-5 h-5 text-brand-gold flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-bold text-brand-dark">ضمان الجودة</p>
-                  <p className="text-xs text-gray-400">قطن بريميوم</p>
-                </div>
+                <div><p className="text-sm font-bold text-brand-dark">ضمان الجودة</p><p className="text-xs text-gray-400">قطن بريميوم</p></div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ===== التقييمات ===== */}
+        {/* ✅ Related Products */}
+        {product.related_products && product.related_products.length > 0 && (
+          <div className="mt-16 border-t border-gray-100 pt-12">
+            <h3 className="text-xl font-bold text-brand-dark mb-8">منتجات مشابهة</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {product.related_products.map(related => (
+                <Link
+                  key={related.id}
+                  to={`/product/${related.id}`}
+                  className="group flex flex-col"
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                >
+                  <div className="relative overflow-hidden bg-gray-50 aspect-[3/4] mb-3">
+                    <img
+                      src={formatImageUrl(related.image)}
+                      alt={related.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => { e.target.src = 'https://via.placeholder.com/400x500'; }}
+                    />
+                    {related.discount > 0 && (
+                      <div className="absolute top-2 right-2 bg-red-600 text-white text-[11px] font-bold px-2 py-1">
+                        -{related.discount}%
+                      </div>
+                    )}
+                  </div>
+                  <h4 className="text-sm font-semibold text-brand-dark line-clamp-2 mb-1">{related.name}</h4>
+                  <div className="flex items-center gap-2 mt-auto">
+                    <p className="text-sm font-bold text-brand-gold">{related.price} EGP</p>
+                    {related.original_price && (
+                      <p className="text-xs text-gray-400 line-through">{related.original_price} EGP</p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* التقييمات */}
         <div className="mt-16 border-t border-gray-100 pt-12">
           <h3 className="text-xl font-bold text-brand-dark mb-8">آراء العملاء ({product.review_count || 0})</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -422,7 +386,6 @@ const ProductDetail = () => {
                 <p className="text-gray-400 text-sm">لا توجد تقييمات بعد. كن أول من يقيّم!</p>
               )}
             </div>
-
             <div className="bg-gray-50 p-8">
               <h4 className="text-base font-bold text-brand-dark mb-6">أضف تقييمك</h4>
               <form onSubmit={handleReviewSubmit} className="space-y-5">
@@ -431,8 +394,7 @@ const ProductDetail = () => {
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star key={star} onClick={() => setRating(star)}
-                        className={`w-7 h-7 cursor-pointer transition-all ${star <= rating ? 'fill-brand-gold text-brand-gold' : 'text-gray-300'}`}
-                      />
+                        className={`w-7 h-7 cursor-pointer transition-all ${star <= rating ? 'fill-brand-gold text-brand-gold' : 'text-gray-300'}`} />
                     ))}
                   </div>
                 </div>
@@ -440,8 +402,7 @@ const ProductDetail = () => {
                   <p className="text-sm text-gray-400 mb-2">تعليقك</p>
                   <textarea value={comment} onChange={(e) => setComment(e.target.value)} required
                     className="w-full border border-gray-200 p-3 text-sm outline-none focus:border-brand-dark transition-all min-h-[100px]"
-                    placeholder="شاركنا رأيك..."
-                  />
+                    placeholder="شاركنا رأيك..." />
                 </div>
                 <button type="submit" className="w-full bg-brand-dark text-white py-3 text-sm font-bold uppercase tracking-wider hover:bg-brand-gold hover:text-brand-dark transition-all">
                   إرسال التقييم
