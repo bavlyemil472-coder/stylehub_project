@@ -3,19 +3,36 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from .models import product, Category, Section, SubCategory, Size, ProductVariant, ProductImage, Review, AnnouncementBar
 
-# ✅ ضغط الصور
 from PIL import Image
 import io
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
-def compress_image(img_file, quality=75, max_size_mb=8):
-    """بيضغط الصورة لـ JPEG بجودة معينة"""
+def compress_image(img_file, max_size_mb=8):
+    """
+    بيضغط الصورة تدريجياً لحد ما تبقى أقل من max_size_mb
+    بيبدأ من quality=85 وبينزل كل مرة 10 لحد 20
+    """
     try:
         img = Image.open(img_file)
+
+        # لو الصورة كبيرة جداً في الأبعاد، صغّرها الأول
+        max_dimension = 2000
+        if img.width > max_dimension or img.height > max_dimension:
+            img.thumbnail((max_dimension, max_dimension), Image.LANCZOS)
+
         img = img.convert('RGB')
-        output = io.BytesIO()
-        img.save(output, format='JPEG', quality=quality, optimize=True)
+        max_bytes = max_size_mb * 1024 * 1024
+        quality = 85
+
+        while quality >= 20:
+            output = io.BytesIO()
+            img.save(output, format='JPEG', quality=quality, optimize=True)
+            size = output.getbuffer().nbytes
+            if size <= max_bytes:
+                break
+            quality -= 10
+
         output.seek(0)
         file_name = f"{img_file.name.rsplit('.', 1)[0]}.jpg"
         return InMemoryUploadedFile(
@@ -23,7 +40,7 @@ def compress_image(img_file, quality=75, max_size_mb=8):
             'image/jpeg', output.getbuffer().nbytes, None
         )
     except Exception:
-        return img_file  # لو فشل الضغط ارجع الأصلي
+        return img_file
 
 
 class ProductImageInline(admin.TabularInline):
@@ -65,6 +82,12 @@ class SectionAdmin(admin.ModelAdmin):
         return "-"
     description_short.short_description = "الوصف"
 
+    # ✅ ضغط صور الـ Section
+    def save_model(self, request, obj, form, change):
+        if 'image' in request.FILES:
+            obj.image = compress_image(request.FILES['image'])
+        super().save_model(request, obj, form, change)
+
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -88,6 +111,12 @@ class CategoryAdmin(admin.ModelAdmin):
         return "-"
     description_short.short_description = "الوصف"
 
+    # ✅ ضغط صور الـ Category
+    def save_model(self, request, obj, form, change):
+        if 'image' in request.FILES:
+            obj.image = compress_image(request.FILES['image'])
+        super().save_model(request, obj, form, change)
+
 
 @admin.register(SubCategory)
 class SubCategoryAdmin(admin.ModelAdmin):
@@ -104,6 +133,12 @@ class SubCategoryAdmin(admin.ModelAdmin):
     def products_count(self, obj):
         return f"{obj.products.count()} منتج"
     products_count.short_description = "المنتجات"
+
+    # ✅ ضغط صور الـ SubCategory
+    def save_model(self, request, obj, form, change):
+        if 'image' in request.FILES:
+            obj.image = compress_image(request.FILES['image'])
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(product)
@@ -130,7 +165,7 @@ class ProductAdmin(admin.ModelAdmin):
         return f"{total} قطع"
     total_stock_display.short_description = "إجمالي المخزون"
 
-    # ✅ ضغط الصورة الرئيسية أوتوماتيك قبل الرفع
+    # ✅ ضغط الصورة الرئيسية تدريجياً
     def save_model(self, request, obj, form, change):
         if 'image' in request.FILES:
             obj.image = compress_image(request.FILES['image'])
@@ -168,7 +203,7 @@ class ProductImageAdmin(admin.ModelAdmin):
         return "-"
     image_preview.short_description = "Preview"
 
-    # ✅ ضغط الصور الإضافية أوتوماتيك
+    # ✅ ضغط الصور الإضافية تدريجياً
     def save_model(self, request, obj, form, change):
         if 'image' in request.FILES:
             obj.image = compress_image(request.FILES['image'])
