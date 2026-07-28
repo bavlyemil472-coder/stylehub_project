@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { ArrowLeft, Loader2, ChevronLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import logo from '../assets/logo.jpeg';
 import { formatImageUrl } from '../utils/helpers';
 
@@ -71,8 +71,8 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Sections + Categories */}
-            <section id="sections" className="py-24 bg-white">
+            {/* Sections - بانرات كبيرة */}
+            <section id="sections" className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-6">
 
                     {loading ? (
@@ -80,70 +80,43 @@ const Home = () => {
                             <Loader2 className="w-8 h-8 text-brand-gold animate-spin" />
                         </div>
                     ) : (
-                        <div className="space-y-20">
-                            {/* لو في Sections */}
-                            {sections.length > 0 ? sections.map(section => (
-                                <div key={section.id}>
-                                    {/* عنوان القسم */}
+                        <div className="space-y-6">
+                            {sections.length > 0 ? (
+                                <>
                                     <div className="flex items-center gap-6 mb-10">
                                         <div className="flex-1 h-[1px] bg-gray-100"></div>
                                         <div className="text-center">
-                                            <p className="text-brand-gold text-[10px] font-bold uppercase tracking-[0.5em] mb-1">Collection</p>
-                                            <h2 className="text-2xl font-bold text-brand-dark">{section.name}</h2>
+                                            <p className="text-brand-gold text-[10px] font-bold uppercase tracking-[0.5em] mb-1">Collections</p>
+                                            <h2 className="text-2xl font-bold text-brand-dark">الأقسام</h2>
                                         </div>
                                         <div className="flex-1 h-[1px] bg-gray-100"></div>
                                     </div>
 
-                                    {/* الكاتيجوريز جوا القسم */}
-                                    {section.categories?.length > 0 ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            {section.categories.map(cat => (
-                                                <div key={cat.id} className="space-y-3">
-                                                    {/* الكاتيجوري الرئيسية */}
-                                                    <div
-                                                        onClick={() => navigate(`/shop?category=${cat.id}`)}
-                                                        className="relative overflow-hidden cursor-pointer group"
-                                                    >
-                                                        <div className="aspect-[4/3] overflow-hidden bg-gray-100">
-                                                            <img
-                                                                src={formatImageUrl(cat.image)}
-                                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                                                alt={cat.name}
-                                                            />
-                                                        </div>
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"></div>
-                                                        <div className="absolute bottom-0 right-0 left-0 p-4">
-                                                            <h3 className="text-white text-xl font-bold mb-1">{cat.name}</h3>
-                                                            <div className="flex items-center gap-2 text-brand-gold text-xs font-bold">
-                                                                <span>استكشف</span>
-                                                                <ArrowLeft className="w-3 h-3" />
-                                                            </div>
-                                                        </div>
-                                                        <div className="absolute inset-0 border-2 border-brand-gold opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                                    </div>
-
-                                                    {/* الـ Subcategories */}
-                                                    {cat.subcategories?.length > 0 && (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {cat.subcategories.map(sub => (
-                                                                <button
-                                                                    key={sub.id}
-                                                                    onClick={() => navigate(`/shop?subcategory=${sub.id}`)}
-                                                                    className="text-xs font-bold px-4 py-2 border border-gray-200 text-gray-600 hover:border-brand-gold hover:text-brand-gold transition-all"
-                                                                >
-                                                                    {sub.name}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
+                                    {sections.map(section => (
+                                        <div
+                                            key={section.id}
+                                            onClick={() => navigate(`/section/${section.id}`)}
+                                            className="relative overflow-hidden cursor-pointer group h-[260px] md:h-[420px]"
+                                        >
+                                            <img
+                                                src={formatImageUrl(section.image)}
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                alt={section.name}
+                                                onError={(e) => { e.target.src = 'https://via.placeholder.com/1200x500'; }}
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+                                                <p className="text-brand-gold text-[10px] font-bold uppercase tracking-[0.5em] mb-3">Collection</p>
+                                                <h3 className="text-white text-3xl md:text-5xl font-bold mb-5">{section.name}</h3>
+                                                <span className="inline-flex items-center gap-2 border border-white/40 text-white text-xs font-bold uppercase tracking-widest px-6 py-3 group-hover:bg-brand-gold group-hover:text-brand-dark group-hover:border-brand-gold transition-all duration-300">
+                                                    تسوق المجموعة
+                                                    <ArrowLeft className="w-4 h-4" />
+                                                </span>
+                                            </div>
                                         </div>
-                                    ) : (
-                                        <p className="text-gray-400 text-center py-8">لا توجد أقسام فرعية</p>
-                                    )}
-                                </div>
-                            )) : (
+                                    ))}
+                                </>
+                            ) : (
                                 /* لو مفيش Sections عرض الكاتيجوريز العادية */
                                 <div>
                                     <div className="flex items-center gap-6 mb-10">
@@ -176,7 +149,7 @@ const Home = () => {
                             )}
 
                             {/* زرار كل المنتجات */}
-                            <div className="text-center">
+                            <div className="text-center pt-10">
                                 <button onClick={() => navigate('/shop')} className="border border-brand-dark text-brand-dark px-12 py-3.5 text-sm font-bold uppercase tracking-widest hover:bg-brand-dark hover:text-white transition-all duration-300">
                                     عرض كل المنتجات
                                 </button>
