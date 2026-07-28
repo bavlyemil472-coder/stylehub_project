@@ -94,6 +94,15 @@ const Checkout = () => {
                     setIsSubmitting(false);
                 }
             } else {
+                if (window.fbq) {
+                    window.fbq('track', 'Purchase', {
+                        value: totalPrice,
+                        currency: 'EGP',
+                        content_ids: (cart.items || []).map(item => item.variant || item.id),
+                        content_type: 'product',
+                        num_items: (cart.items || []).reduce((sum, item) => sum + item.quantity, 0)
+                    });
+                }
                 toast.success('تم تسجيل طلبك بنجاح! شكراً لثقتك.');
                 navigate('/order-success', { state: { orderId: response.data.id } });
             }
