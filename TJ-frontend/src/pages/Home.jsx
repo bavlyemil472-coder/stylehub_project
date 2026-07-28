@@ -33,7 +33,7 @@ const Home = () => {
         <div className="bg-white min-h-screen" dir="rtl">
 
             {/* Hero */}
-            <section className="relative h-screen bg-[#0a0a0a] flex items-center justify-center overflow-hidden">
+            <section className="relative h-[70vh] min-h-[560px] bg-[#0a0a0a] flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1px] h-40 bg-gradient-to-b from-transparent to-brand-gold/30"></div>
                     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1px] h-40 bg-gradient-to-t from-transparent to-brand-gold/30"></div>
