@@ -207,7 +207,7 @@ const Navbar = () => {
         {/* Mobile Menu */}
         <div className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-500 md:hidden ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsOpen(false)}>
           <div
-            className={`absolute right-0 top-0 h-full w-[280px] bg-[#0a0a0a] p-8 space-y-10 shadow-2xl transition-transform duration-500 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            className={`absolute right-0 top-0 h-full w-[280px] bg-black text-white p-8 space-y-10 shadow-2xl transition-transform duration-500 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center border-b border-white/5 pb-6">
