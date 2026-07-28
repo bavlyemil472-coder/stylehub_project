@@ -188,7 +188,25 @@ const Navbar = () => {
               </div>
             </div>
 
-            <div className="md:hidden flex items-center gap-5">
+            <div className="md:hidden flex items-center gap-4">
+              <a
+                href={socialLinks.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-8 h-8 bg-[#1877F2]/15 border border-[#1877F2]/30 rounded-full"
+                title="Facebook"
+              >
+                <Facebook className="w-4 h-4 text-[#1877F2]" />
+              </a>
+              <a
+                href={socialLinks.whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-8 h-8 bg-[#25D366]/15 border border-[#25D366]/30 rounded-full"
+                title="WhatsApp"
+              >
+                <MessageCircle className="w-4 h-4 text-[#25D366]" />
+              </a>
               <Link to="/cart" className="relative">
                 <ShoppingBag className="w-5 h-5 text-white/80" />
                 {cartCount > 0 && (
@@ -238,28 +256,6 @@ const Navbar = () => {
                   My Orders <ChevronDown className="w-3 h-3 -rotate-90 text-brand-gold/30" />
                 </Link>
               )}
-            </div>
-
-            {/* ✅ زراير السوشيال ميديا في القائمة الموبايل */}
-            <div className="flex gap-3 pt-6 border-t border-white/5">
-              <a
-                href={socialLinks.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 flex-1 bg-[#1877F2]/15 hover:bg-[#1877F2]/30 border border-[#1877F2]/30 hover:border-[#1877F2]/60 py-2.5 rounded-lg transition-all"
-              >
-                <Facebook className="w-4 h-4 text-[#1877F2]" />
-                <span className="text-[10px] font-bold text-[#1877F2]">Facebook</span>
-              </a>
-              <a
-                href={socialLinks.whatsapp}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 flex-1 bg-[#25D366]/15 hover:bg-[#25D366]/30 border border-[#25D366]/30 hover:border-[#25D366]/60 py-2.5 rounded-lg transition-all"
-              >
-                <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                <span className="text-[10px] font-bold text-[#25D366]">WhatsApp</span>
-              </a>
             </div>
 
             <div className="pt-10 border-t border-white/5 space-y-6">
