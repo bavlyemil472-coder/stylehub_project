@@ -64,11 +64,11 @@ const Home = () => {
             {/* اقتباس تحريري - علامة تنصيص كبيرة */}
             <section className="py-14 border-b border-gray-100">
                 <div className="max-w-3xl mx-auto text-center px-6">
-                    <span className="font-display text-brand-gold/25 text-8xl leading-none block mb-[-1.5rem]">"</span>
-                    <p className="font-display italic text-xl md:text-2xl text-brand-dark leading-relaxed">
+                    <span className="font-display text-brand-gold/25 text-6xl md:text-8xl leading-none block mb-[-1rem] md:mb-[-1.5rem]">"</span>
+                    <p className="font-display italic text-lg md:text-2xl text-brand-dark leading-relaxed">
                         الجودة ليست مجرد فعل، بل هي عادة نغزلها في كل قطعة
                     </p>
-                    <p className="text-brand-gold text-[10px] font-bold uppercase tracking-[0.4em] mt-4">تري جولي — أكثر من 30 عامًا من الخبرة</p>
+                    <p className="text-brand-gold text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] md:tracking-[0.4em] mt-4">تري جولي — أكثر من 30 عامًا من الخبرة</p>
                 </div>
             </section>
 
@@ -90,65 +90,113 @@ const Home = () => {
                                         <div className="w-14 h-[2px] bg-brand-gold mx-auto mt-4"></div>
                                     </div>
 
-                                    <div className="space-y-16">
+                                    <div className="space-y-6 md:space-y-16">
                                         {sections.map((section, idx) => {
                                             const reversed = idx % 2 === 1;
                                             const previewCats = (section.categories || []).slice(0, 4);
+                                            const extraCount = (section.categories || []).length - previewCats.length;
                                             return (
-                                                <div
-                                                    key={section.id}
-                                                    className={`flex flex-col ${reversed ? 'md:flex-row-reverse' : 'md:flex-row'} gap-8 items-center`}
-                                                >
-                                                    {/* صورة السيكشن */}
+                                                <React.Fragment key={section.id}>
+
+                                                    {/* ===== نسخة الموبايل: صورة + نص فوقها ===== */}
                                                     <div
                                                         onClick={() => navigate(`/section/${section.id}`)}
-                                                        className="relative overflow-hidden cursor-pointer group w-full md:w-3/5 h-[300px] md:h-[420px] flex-shrink-0"
+                                                        className="md:hidden relative overflow-hidden cursor-pointer group h-[380px]"
                                                     >
                                                         <img
                                                             src={formatImageUrl(section.image)}
-                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                            className="w-full h-full object-cover"
                                                             alt={section.name}
-                                                            onError={(e) => { e.target.src = 'https://via.placeholder.com/1000x700'; }}
+                                                            onError={(e) => { e.target.src = 'https://via.placeholder.com/800x900'; }}
                                                         />
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent"></div>
-                                                        <div className="absolute inset-0 border border-brand-gold/0 group-hover:border-brand-gold/60 transition-all duration-500"></div>
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-black/10"></div>
+
+                                                        <div className="absolute inset-0 flex flex-col items-center justify-end text-center px-6 pb-7">
+                                                            <span className="text-brand-gold text-[9px] font-bold uppercase tracking-[0.4em] mb-2">Collection</span>
+                                                            <h3 className="font-display text-2xl font-bold text-white mb-3">{section.name}</h3>
+                                                            <div className="w-8 h-[2px] bg-brand-gold mb-4"></div>
+
+                                                            {previewCats.length > 0 && (
+                                                                <div className="flex items-center gap-2 mb-5">
+                                                                    {previewCats.map((cat, i) => (
+                                                                        <div
+                                                                            key={cat.id}
+                                                                            style={{ zIndex: previewCats.length - i }}
+                                                                            className={`w-10 h-10 rounded-full overflow-hidden border-2 border-white/80 shadow-md ${i !== 0 ? '-mr-3' : ''}`}
+                                                                        >
+                                                                            <img src={formatImageUrl(cat.image)} className="w-full h-full object-cover" alt={cat.name} />
+                                                                        </div>
+                                                                    ))}
+                                                                    {extraCount > 0 && (
+                                                                        <span className="-mr-3 w-10 h-10 rounded-full bg-brand-gold text-brand-dark text-[10px] font-bold flex items-center justify-center border-2 border-white/80 z-0">
+                                                                            +{extraCount}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+
+                                                            <span className="inline-flex items-center gap-2 bg-brand-gold text-brand-dark text-[11px] font-bold uppercase tracking-widest px-6 py-2.5">
+                                                                تسوق المجموعة
+                                                                <ArrowLeft className="w-3.5 h-3.5" />
+                                                            </span>
+                                                        </div>
                                                     </div>
 
-                                                    {/* النص + معاينة الكاتيجوريز */}
-                                                    <div className="w-full md:w-2/5 text-center md:text-right flex flex-col items-center md:items-start">
-                                                        <span className="text-brand-gold text-[10px] font-bold uppercase tracking-[0.4em] mb-3">Collection</span>
-                                                        <h3 className="font-display text-3xl md:text-4xl font-bold text-brand-dark mb-4">{section.name}</h3>
-                                                        <div className="w-10 h-[2px] bg-brand-gold mb-5"></div>
-
-                                                        {previewCats.length > 0 && (
-                                                            <div className="flex items-center gap-2 mb-6">
-                                                                {previewCats.map((cat, i) => (
-                                                                    <div
-                                                                        key={cat.id}
-                                                                        style={{ zIndex: previewCats.length - i }}
-                                                                        className={`w-11 h-11 rounded-full overflow-hidden border-2 border-white shadow-md ${i !== 0 ? '-mr-3' : ''}`}
-                                                                        title={cat.name}
-                                                                    >
-                                                                        <img src={formatImageUrl(cat.image)} className="w-full h-full object-cover" alt={cat.name} />
-                                                                    </div>
-                                                                ))}
-                                                                {(section.categories || []).length > previewCats.length && (
-                                                                    <span className="-mr-3 w-11 h-11 rounded-full bg-brand-dark text-white text-[10px] font-bold flex items-center justify-center border-2 border-white z-0">
-                                                                        +{(section.categories || []).length - previewCats.length}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        )}
-
-                                                        <button
+                                                    {/* ===== نسخة التابلت/الديسكتوب: تحريرية جنب بعض ===== */}
+                                                    <div
+                                                        className={`hidden md:flex flex-col ${reversed ? 'md:flex-row-reverse' : 'md:flex-row'} gap-8 items-center`}
+                                                    >
+                                                        {/* صورة السيكشن */}
+                                                        <div
                                                             onClick={() => navigate(`/section/${section.id}`)}
-                                                            className="inline-flex items-center gap-2 border border-brand-dark text-brand-dark text-xs font-bold uppercase tracking-widest px-7 py-3 hover:bg-brand-dark hover:text-white transition-all duration-300"
+                                                            className="relative overflow-hidden cursor-pointer group w-full md:w-3/5 h-[420px] flex-shrink-0"
                                                         >
-                                                            تسوق المجموعة
-                                                            <ArrowLeft className="w-3.5 h-3.5" />
-                                                        </button>
+                                                            <img
+                                                                src={formatImageUrl(section.image)}
+                                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                                alt={section.name}
+                                                                onError={(e) => { e.target.src = 'https://via.placeholder.com/1000x700'; }}
+                                                            />
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent"></div>
+                                                            <div className="absolute inset-0 border border-brand-gold/0 group-hover:border-brand-gold/60 transition-all duration-500"></div>
+                                                        </div>
+
+                                                        {/* النص + معاينة الكاتيجوريز */}
+                                                        <div className="w-full md:w-2/5 text-center md:text-right flex flex-col items-center md:items-start">
+                                                            <span className="text-brand-gold text-[10px] font-bold uppercase tracking-[0.4em] mb-3">Collection</span>
+                                                            <h3 className="font-display text-3xl md:text-4xl font-bold text-brand-dark mb-4">{section.name}</h3>
+                                                            <div className="w-10 h-[2px] bg-brand-gold mb-5"></div>
+
+                                                            {previewCats.length > 0 && (
+                                                                <div className="flex items-center gap-2 mb-6">
+                                                                    {previewCats.map((cat, i) => (
+                                                                        <div
+                                                                            key={cat.id}
+                                                                            style={{ zIndex: previewCats.length - i }}
+                                                                            className={`w-11 h-11 rounded-full overflow-hidden border-2 border-white shadow-md ${i !== 0 ? '-mr-3' : ''}`}
+                                                                            title={cat.name}
+                                                                        >
+                                                                            <img src={formatImageUrl(cat.image)} className="w-full h-full object-cover" alt={cat.name} />
+                                                                        </div>
+                                                                    ))}
+                                                                    {extraCount > 0 && (
+                                                                        <span className="-mr-3 w-11 h-11 rounded-full bg-brand-dark text-white text-[10px] font-bold flex items-center justify-center border-2 border-white z-0">
+                                                                            +{extraCount}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                            )}
+
+                                                            <button
+                                                                onClick={() => navigate(`/section/${section.id}`)}
+                                                                className="inline-flex items-center gap-2 border border-brand-dark text-brand-dark text-xs font-bold uppercase tracking-widest px-7 py-3 hover:bg-brand-dark hover:text-white transition-all duration-300"
+                                                            >
+                                                                تسوق المجموعة
+                                                                <ArrowLeft className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
+                                                </React.Fragment>
                                             );
                                         })}
                                     </div>
@@ -196,16 +244,16 @@ const Home = () => {
             {/* مميزات - أرقام بخط Playfair وفواصل رفيعة */}
             <section className="py-16 bg-[#0a0a0a]">
                 <div className="max-w-5xl mx-auto px-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-white/10">
                         {[
                             { num: '30+', label: 'سنة خبرة' },
                             { num: '100%', label: 'قطن طبيعي' },
                             { num: '48h', label: 'توصيل سريع' },
                             { num: '5★', label: 'تقييم العملاء' },
                         ].map((item, i) => (
-                            <div key={i} className={`text-center py-6 md:py-0 ${i !== 0 ? 'md:border-r border-white/10' : ''}`}>
-                                <p className="font-display text-4xl font-bold text-brand-gold mb-1">{item.num}</p>
-                                <p className="text-gray-400 text-[11px] uppercase tracking-[0.2em]">{item.label}</p>
+                            <div key={i} className="text-center py-6 md:py-2 px-2">
+                                <p className="font-display text-3xl md:text-4xl font-bold text-brand-gold mb-1">{item.num}</p>
+                                <p className="text-gray-400 text-[10px] md:text-[11px] uppercase tracking-[0.15em] md:tracking-[0.2em]">{item.label}</p>
                             </div>
                         ))}
                     </div>
