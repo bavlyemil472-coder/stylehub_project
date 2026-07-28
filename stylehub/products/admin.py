@@ -2,49 +2,62 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from .models import product, Category, Section, SubCategory, Size, ProductVariant, ProductImage, Review, AnnouncementBar
-
 from PIL import Image
 import io
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django import forms
 
 
 def compress_image(img_file, max_size_mb=8):
-    """
-    بيضغط الصورة تدريجياً لحد ما تبقى أقل من max_size_mb
-    بيبدأ من quality=85 وبينزل كل مرة 10 لحد 20
-    """
     try:
         img = Image.open(img_file)
-
-        # لو الصورة كبيرة جداً في الأبعاد، صغّرها الأول
         max_dimension = 2000
         if img.width > max_dimension or img.height > max_dimension:
             img.thumbnail((max_dimension, max_dimension), Image.LANCZOS)
-
         img = img.convert('RGB')
         max_bytes = max_size_mb * 1024 * 1024
         quality = 85
-
         while quality >= 20:
             output = io.BytesIO()
             img.save(output, format='JPEG', quality=quality, optimize=True)
-            size = output.getbuffer().nbytes
-            if size <= max_bytes:
+            if output.getbuffer().nbytes <= max_bytes:
                 break
             quality -= 10
-
         output.seek(0)
         file_name = f"{img_file.name.rsplit('.', 1)[0]}.jpg"
-        return InMemoryUploadedFile(
-            output, 'ImageField', file_name,
-            'image/jpeg', output.getbuffer().nbytes, None
-        )
+        return InMemoryUploadedFile(output, 'ImageField', file_name, 'image/jpeg', output.getbuffer().nbytes, None)
     except Exception:
         return img_file
 
 
+# ✅ Form بيضغط الصورة قبل ما تتبعت لـ Cloudinary
+class ProductAdminForm(forms.ModelForm):
+    class Meta:
+        model = product
+        fields = '__all__'
+
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image and hasattr(image, 'size') and image.size > 5 * 1024 * 1024:
+            return compress_image(image)
+        return image
+
+
+class ProductImageAdminForm(forms.ModelForm):
+    class Meta:
+        model = ProductImage
+        fields = '__all__'
+
+    def clean_image(self):
+        image = self.cleaned_data.get('image')
+        if image and hasattr(image, 'size') and image.size > 5 * 1024 * 1024:
+            return compress_image(image)
+        return image
+
+
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
+    form = ProductImageAdminForm
     extra = 3
     readonly_fields = ['image_preview']
 
@@ -82,12 +95,6 @@ class SectionAdmin(admin.ModelAdmin):
         return "-"
     description_short.short_description = "الوصف"
 
-    # ✅ ضغط صور الـ Section
-    def save_model(self, request, obj, form, change):
-        if 'image' in request.FILES:
-            obj.image = compress_image(request.FILES['image'])
-        super().save_model(request, obj, form, change)
-
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -111,12 +118,6 @@ class CategoryAdmin(admin.ModelAdmin):
         return "-"
     description_short.short_description = "الوصف"
 
-    # ✅ ضغط صور الـ Category
-    def save_model(self, request, obj, form, change):
-        if 'image' in request.FILES:
-            obj.image = compress_image(request.FILES['image'])
-        super().save_model(request, obj, form, change)
-
 
 @admin.register(SubCategory)
 class SubCategoryAdmin(admin.ModelAdmin):
@@ -134,15 +135,10 @@ class SubCategoryAdmin(admin.ModelAdmin):
         return f"{obj.products.count()} منتج"
     products_count.short_description = "المنتجات"
 
-    # ✅ ضغط صور الـ SubCategory
-    def save_model(self, request, obj, form, change):
-        if 'image' in request.FILES:
-            obj.image = compress_image(request.FILES['image'])
-        super().save_model(request, obj, form, change)
-
 
 @admin.register(product)
 class ProductAdmin(admin.ModelAdmin):
+    form = ProductAdminForm  # ✅
     list_display = ('image_tag', 'name', 'price', 'discount_badge', 'category', 'subcategory', 'total_stock_display', 'is_available')
     list_filter = ('is_available', 'category', 'subcategory', 'category__section')
     search_fields = ('name',)
@@ -164,12 +160,6 @@ class ProductAdmin(admin.ModelAdmin):
         total = sum(variant.stock for variant in obj.variants.all())
         return f"{total} قطع"
     total_stock_display.short_description = "إجمالي المخزون"
-
-    # ✅ ضغط الصورة الرئيسية تدريجياً
-    def save_model(self, request, obj, form, change):
-        if 'image' in request.FILES:
-            obj.image = compress_image(request.FILES['image'])
-        super().save_model(request, obj, form, change)
 
 
 @admin.register(Size)
@@ -195,6 +185,7 @@ class ProductVariantAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
+    form = ProductImageAdminForm  # ✅
     list_display = ('product', 'image_preview')
 
     def image_preview(self, obj):
@@ -202,12 +193,6 @@ class ProductImageAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="width: 100px; height: 100px; object-fit: cover;" />', obj.image.url)
         return "-"
     image_preview.short_description = "Preview"
-
-    # ✅ ضغط الصور الإضافية تدريجياً
-    def save_model(self, request, obj, form, change):
-        if 'image' in request.FILES:
-            obj.image = compress_image(request.FILES['image'])
-        super().save_model(request, obj, form, change)
 
 
 @admin.register(Review)

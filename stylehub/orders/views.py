@@ -32,7 +32,7 @@ class CreateOrderView(APIView):
             cart = Cart.objects.filter(user=user).first()
             cart_items_data = list(cart.items.all()) if cart else []
         else:
-            session_cart = request.session.get('cart', {})
+            session_cart = getattr(request, 'session', {}).get('cart', {}) if hasattr(request, 'session') else {}
             cart_items_data = []
 
             if session_cart:
@@ -71,7 +71,7 @@ class CreateOrderView(APIView):
 
         # ✅ جيب سعر الشحن من الـ ShippingRate
         shipping_rate = ShippingRate.objects.filter(city_name=city).first()
-        shipping_price = float(shipping_rate.price) if shipping_rate else 0.0
+        from decimal import Decimal; shipping_price = Decimal(str(shipping_rate.price)) if shipping_rate else Decimal('0.00')
 
         order = Order.objects.create(
             user=user,
@@ -122,8 +122,9 @@ class CreateOrderView(APIView):
         if user and cart:
             cart.items.all().delete()
         else:
-            request.session['cart'] = {}
-            request.session.modified = True
+            if hasattr(request, 'session'):
+                request.session['cart'] = {}
+                request.session.modified = True
 
         if user:
             try:
