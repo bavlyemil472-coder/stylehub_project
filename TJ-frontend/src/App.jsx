@@ -17,7 +17,7 @@ import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/AdminDashboard';
-
+import SectionCategories from './pages/SectionCategories';
 // ✅ ScrollToTop — بيرجع للأعلى عند كل تغيير صفحة
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -26,7 +26,6 @@ const ScrollToTop = () => {
   }, [pathname]);
   return null;
 };
-
 function App() {
   return (
     <Router>
@@ -41,6 +40,7 @@ function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/product/:id" element={<ProductDetails />} />
+            <Route path="/section/:id" element={<SectionCategories />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
@@ -56,5 +56,4 @@ function App() {
     </Router>
   );
 }
-
 export default App;
