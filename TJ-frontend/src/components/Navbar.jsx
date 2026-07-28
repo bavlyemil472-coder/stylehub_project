@@ -10,10 +10,17 @@ import {
   X,
   Search,
   ChevronDown,
-  LayoutDashboard
+  LayoutDashboard,
+  Facebook,
+  MessageCircle
 } from 'lucide-react';
 import { formatImageUrl } from '../utils/helpers';
 import AnnouncementBar from './AnnouncementBar'; // ✅ الجديد
+
+const socialLinks = {
+  facebook: "https://www.facebook.com/share/1Ag9BPyEXd/",
+  whatsapp: "https://wa.me/01559892697"
+};
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -130,6 +137,28 @@ const Navbar = () => {
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 group-focus-within:text-brand-gold transition-colors" />
               </form>
 
+              {/* ✅ زراير السوشيال ميديا - فيسبوك وواتساب */}
+              <div className="flex items-center gap-2 border-l border-white/10 pl-8">
+                <a
+                  href={socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center w-9 h-9 bg-[#1877F2]/15 hover:bg-[#1877F2]/30 border border-[#1877F2]/30 hover:border-[#1877F2]/60 rounded-full transition-all"
+                  title="Facebook"
+                >
+                  <Facebook className="w-4 h-4 text-[#1877F2]" />
+                </a>
+                <a
+                  href={socialLinks.whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center w-9 h-9 bg-[#25D366]/15 hover:bg-[#25D366]/30 border border-[#25D366]/30 hover:border-[#25D366]/60 rounded-full transition-all"
+                  title="WhatsApp"
+                >
+                  <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                </a>
+              </div>
+
               <div className="flex items-center gap-6 border-l border-white/10 pl-8">
                 <Link to="/cart" className="relative text-white/80 hover:text-brand-gold transition-all duration-300 hover:scale-110">
                   <ShoppingBag className="w-5 h-5" />
@@ -209,6 +238,28 @@ const Navbar = () => {
                   My Orders <ChevronDown className="w-3 h-3 -rotate-90 text-brand-gold/30" />
                 </Link>
               )}
+            </div>
+
+            {/* ✅ زراير السوشيال ميديا في القائمة الموبايل */}
+            <div className="flex gap-3 pt-6 border-t border-white/5">
+              <a
+                href={socialLinks.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 flex-1 bg-[#1877F2]/15 hover:bg-[#1877F2]/30 border border-[#1877F2]/30 hover:border-[#1877F2]/60 py-2.5 rounded-lg transition-all"
+              >
+                <Facebook className="w-4 h-4 text-[#1877F2]" />
+                <span className="text-[10px] font-bold text-[#1877F2]">Facebook</span>
+              </a>
+              <a
+                href={socialLinks.whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 flex-1 bg-[#25D366]/15 hover:bg-[#25D366]/30 border border-[#25D366]/30 hover:border-[#25D366]/60 py-2.5 rounded-lg transition-all"
+              >
+                <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                <span className="text-[10px] font-bold text-[#25D366]">WhatsApp</span>
+              </a>
             </div>
 
             <div className="pt-10 border-t border-white/5 space-y-6">
