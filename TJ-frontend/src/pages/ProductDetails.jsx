@@ -95,6 +95,16 @@ const ProductDetail = () => {
         iconTheme: { primary: '#D4AF37', secondary: '#0B0B0B' },
       });
       window.dispatchEvent(new Event('cartUpdated'));
+      if (window.fbq) {
+        window.fbq('track', 'AddToCart', {
+          content_ids: [product.id],
+          content_type: 'product',
+          content_name: product.name,
+          value: product.price,
+          currency: 'EGP',
+          quantity: quantity
+        });
+      }
     } catch (err) {
       toast.error(err.response?.data?.error || "حدث خطأ أثناء الإضافة");
     }
@@ -106,6 +116,22 @@ const ProductDetail = () => {
     try {
       await api.post('/cart/add/', { variant_id: selectedVariant.id, quantity });
       window.dispatchEvent(new Event('cartUpdated'));
+      if (window.fbq) {
+        window.fbq('track', 'AddToCart', {
+          content_ids: [product.id],
+          content_type: 'product',
+          content_name: product.name,
+          value: product.price,
+          currency: 'EGP',
+          quantity: quantity
+        });
+        window.fbq('track', 'InitiateCheckout', {
+          content_ids: [product.id],
+          content_type: 'product',
+          value: product.price,
+          currency: 'EGP'
+        });
+      }
       navigate('/checkout');
     } catch (err) {
       toast.error(err.response?.data?.error || "حدث خطأ");
