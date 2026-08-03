@@ -4,6 +4,17 @@ import api from '../services/api';
 import { formatImageUrl } from '../utils/helpers';
 import { ShoppingBag, ChevronLeft } from 'lucide-react';
 
+const isProductSoldOut = (product) => {
+    if (typeof product.in_stock === 'boolean') return !product.in_stock;
+    if (typeof product.is_available === 'boolean') return !product.is_available;
+    if (typeof product.total_stock === 'number') return product.total_stock <= 0;
+    if (typeof product.stock === 'number') return product.stock <= 0;
+    if (Array.isArray(product.variants)) {
+        return product.variants.every(v => Number(v.stock) <= 0);
+    }
+    return false;
+};
+
 const Shop = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -107,49 +118,63 @@ const Shop = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10">
-                        {products.map(product => (
-                            <div key={product.id} className="group flex flex-col">
-                                <Link to={`/product/${product.id}`} className="relative overflow-hidden bg-gray-50 block mb-3">
-                                    <div className="aspect-[3/4]">
-                                        <img
-                                            src={formatImageUrl(product.image)}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                            alt={product.name}
-                                            onError={(e) => { e.target.src = 'https://via.placeholder.com/400x500'; }}
-                                        />
-                                    </div>
-
-                                    {/* ✅ Badge الخصم على الكارد */}
-                                    {product.discount > 0 && (
-                                        <div className="absolute top-2 right-2 bg-red-600 text-white text-[11px] font-bold px-2 py-1 z-10">
-                                            -{product.discount}%
+                        {products.map(product => {
+                            const soldOut = isProductSoldOut(product);
+                            return (
+                                <div key={product.id} className="group flex flex-col">
+                                    <Link to={`/product/${product.id}`} className="relative overflow-hidden bg-gray-50 block mb-3">
+                                        <div className="aspect-[3/4]">
+                                            <img
+                                                src={formatImageUrl(product.image)}
+                                                className={`w-full h-full object-cover transition-transform duration-500 ${soldOut ? 'opacity-50 grayscale' : 'group-hover:scale-105'}`}
+                                                alt={product.name}
+                                                onError={(e) => { e.target.src = 'https://via.placeholder.com/400x500'; }}
+                                            />
                                         </div>
-                                    )}
 
-                                    <div className="absolute bottom-0 left-0 right-0 bg-brand-dark/90 text-white text-center py-3 text-sm font-bold translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center gap-2">
-                                        <ShoppingBag className="w-4 h-4" />
-                                        أضف للسلة
-                                    </div>
-                                </Link>
-
-                                <Link to={`/product/${product.id}`} className="flex flex-col flex-1">
-                                    <h3 className="text-brand-dark text-base font-semibold mb-1 leading-snug line-clamp-2">{product.name}</h3>
-
-                                    {/* ✅ السعر مع الخصم */}
-                                    <div className="mt-auto">
-                                        <p className="text-brand-dark font-bold text-base">
-                                            {product.price}{' '}
-                                            <span className="text-gray-400 text-sm font-normal">EGP</span>
-                                        </p>
-                                        {product.original_price && (
-                                            <p className="text-xs text-gray-400 line-through">
-                                                {product.original_price} EGP
-                                            </p>
+                                        {/* ✅ Badge الخصم على الكارد */}
+                                        {!soldOut && product.discount > 0 && (
+                                            <div className="absolute top-2 right-2 bg-red-600 text-white text-[11px] font-bold px-2 py-1 z-10">
+                                                -{product.discount}%
+                                            </div>
                                         )}
-                                    </div>
-                                </Link>
-                            </div>
-                        ))}
+
+                                        {/* ✅ Badge Sold Out */}
+                                        {soldOut && (
+                                            <div className="absolute inset-0 flex items-center justify-center z-10">
+                                                <span className="bg-brand-dark text-white text-xs font-bold uppercase tracking-widest px-5 py-2 border border-white/20">
+                                                    Sold Out
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        {!soldOut && (
+                                            <div className="absolute bottom-0 left-0 right-0 bg-brand-dark/90 text-white text-center py-3 text-sm font-bold translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex items-center justify-center gap-2">
+                                                <ShoppingBag className="w-4 h-4" />
+                                                أضف للسلة
+                                            </div>
+                                        )}
+                                    </Link>
+
+                                    <Link to={`/product/${product.id}`} className="flex flex-col flex-1">
+                                        <h3 className="text-brand-dark text-base font-semibold mb-1 leading-snug line-clamp-2">{product.name}</h3>
+
+                                        {/* ✅ السعر مع الخصم */}
+                                        <div className="mt-auto">
+                                            <p className="text-brand-dark font-bold text-base">
+                                                {product.price}{' '}
+                                                <span className="text-gray-400 text-sm font-normal">EGP</span>
+                                            </p>
+                                            {product.original_price && (
+                                                <p className="text-xs text-gray-400 line-through">
+                                                    {product.original_price} EGP
+                                                </p>
+                                            )}
+                                        </div>
+                                    </Link>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>
