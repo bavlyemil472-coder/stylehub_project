@@ -16,8 +16,15 @@ const ProductDetail = () => {
   const [comment, setComment] = useState('');
   const [lightbox, setLightbox] = useState(false);
   const [viewers, setViewers] = useState(null);
+  const [fakeSold, setFakeSold] = useState(null);
   const touchStartX = useRef(null);
   const autoPlayRef = useRef(null);
+
+  useEffect(() => {
+    if (product) {
+      setFakeSold(Math.floor(Math.random() * (17 - 10 + 1)) + 10);
+    }
+  }, [product?.id]);
 
   useEffect(() => {
     if (window.fbq && product) {
@@ -258,9 +265,9 @@ const ProductDetail = () => {
                 ))}
                 <span className="text-xs text-gray-400 mr-1">({product.review_count || 0})</span>
               </div>
-              {product.total_sold > 0 && (
+              {fakeSold !== null && (
                 <p className="text-sm text-gray-400 mt-2 flex items-center gap-1">
-                  🛍️ تم بيع <span className="font-bold text-brand-dark">{product.total_sold}</span> قطعة
+                  🛍️ تم بيع <span className="font-bold text-brand-dark">{fakeSold}</span> قطعة
                 </p>
               )}
               {viewers !== null && (
