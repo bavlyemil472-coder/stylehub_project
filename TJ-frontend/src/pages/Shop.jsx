@@ -5,13 +5,11 @@ import { formatImageUrl } from '../utils/helpers';
 import { ShoppingBag, ChevronLeft } from 'lucide-react';
 
 const isProductSoldOut = (product) => {
-    if (typeof product.in_stock === 'boolean') return !product.in_stock;
-    if (typeof product.is_available === 'boolean') return !product.is_available;
-    if (typeof product.total_stock === 'number') return product.total_stock <= 0;
-    if (typeof product.stock === 'number') return product.stock <= 0;
-    if (Array.isArray(product.variants)) {
+    if (Array.isArray(product.variants) && product.variants.length > 0) {
         return product.variants.every(v => Number(v.stock) <= 0);
     }
+    if (typeof product.total_stock === 'number') return product.total_stock <= 0;
+    if (typeof product.stock === 'number') return product.stock <= 0;
     return false;
 };
 
