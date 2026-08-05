@@ -21,6 +21,14 @@ import SectionCategories from './pages/SectionCategories';
 // ✅ ScrollToTop — بيرجع للأعلى عند كل تغيير صفحة
 const ScrollToTop = () => {
   const { pathname } = useLocation();
+
+  // نقفل استرجاع السكرول التلقائي بتاع المتصفح (بيتعارض مع الرجوع للأعلى)
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
