@@ -12,6 +12,8 @@ const Checkout = () => {
     const [selectedShippingPrice, setSelectedShippingPrice] = useState(0);
     const [screenshot, setScreenshot] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [wantsInspection, setWantsInspection] = useState(false);
+    const INSPECTION_FEE = 50;
 
     const [formData, setFormData] = useState({
         full_name: '',
@@ -66,6 +68,8 @@ const Checkout = () => {
         try {
             const dataToSend = new FormData();
             Object.keys(formData).forEach(key => dataToSend.append(key, formData[key]));
+            dataToSend.append('wants_inspection', wantsInspection);
+            if (wantsInspection) dataToSend.append('inspection_fee', INSPECTION_FEE);
 
             if (screenshot) dataToSend.append('payment_screenshot', screenshot);
 
@@ -123,7 +127,7 @@ const Checkout = () => {
         </div>
     );
 
-    const totalPrice = parseFloat(cart.total_cart_price || 0) + selectedShippingPrice;
+    const totalPrice = parseFloat(cart.total_cart_price || 0) + selectedShippingPrice + (wantsInspection ? INSPECTION_FEE : 0);
 
     return (
         <div className="min-h-screen bg-gray-50" dir="rtl">
@@ -220,10 +224,33 @@ const Checkout = () => {
                         </div>
                     </div>
 
-                    {/* طريقة الدفع */}
+                    {/* المعاينة قبل الاستلام */}
                     <div className="bg-white rounded-2xl p-6 shadow-sm">
                         <h2 className="text-base font-bold text-brand-dark mb-5 flex items-center gap-2">
                             <span className="w-7 h-7 bg-brand-dark text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                            المعاينة قبل الاستلام
+                        </h2>
+
+                        <button
+                            type="button"
+                            disabled={isSubmitting}
+                            onClick={() => setWantsInspection(!wantsInspection)}
+                            className={`w-full flex items-center justify-between gap-4 p-4 rounded-xl border-2 transition-all duration-300 ${wantsInspection ? 'border-brand-gold bg-amber-50' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+                        >
+                            <div className="text-right">
+                                <p className="text-sm font-bold text-brand-dark">أريد معاينة المنتج قبل الدفع</p>
+                                <p className="text-xs text-gray-400 mt-1">هتقدر تفتح وتتأكد من المنتج قبل ما تدفع (+{INSPECTION_FEE} EGP)</p>
+                            </div>
+                            <span className={`w-12 h-7 rounded-full flex-shrink-0 relative transition-colors duration-300 ${wantsInspection ? 'bg-brand-gold' : 'bg-gray-300'}`}>
+                                <span className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-transform duration-300 ${wantsInspection ? 'translate-x-[-1.6rem]' : 'translate-x-[-0.25rem]'} right-0`}></span>
+                            </span>
+                        </button>
+                    </div>
+
+                    {/* طريقة الدفع */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm">
+                        <h2 className="text-base font-bold text-brand-dark mb-5 flex items-center gap-2">
+                            <span className="w-7 h-7 bg-brand-dark text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
                             طريقة الدفع
                         </h2>
 
@@ -347,6 +374,12 @@ const Checkout = () => {
                                     {selectedShippingPrice > 0 ? `${selectedShippingPrice} EGP` : '—'}
                                 </span>
                             </div>
+                            {wantsInspection && (
+                                <div className="flex justify-between items-center text-sm text-gray-500">
+                                    <span>رسوم المعاينة</span>
+                                    <span className="font-semibold text-brand-dark">{INSPECTION_FEE} EGP</span>
+                                </div>
+                            )}
 
                             <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
                                 <span className="text-base font-bold text-brand-dark">الإجمالي</span>
