@@ -3,7 +3,7 @@ import api from "../services/api";
 import {
   DollarSign, ShoppingBag, Clock, Activity,
   ChevronLeft, Image as ImageIcon, Search,
-  RefreshCw, TrendingUp, Package, X, Truck
+  RefreshCw, TrendingUp, Package, X, Truck, Eye
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatImageUrl } from "../utils/helpers";
@@ -121,6 +121,11 @@ const AdminDashboard = () => {
                 <p className="text-gray-400 text-xs mt-0.5">{new Date(selectedOrder.created_at).toLocaleString('ar-EG')}</p>
               </div>
               <div className="flex items-center gap-3">
+                {selectedOrder.wants_inspection && (
+                  <span className="px-3 py-1 rounded-full text-xs font-bold border text-amber-400 bg-amber-400/10 border-amber-400/20 flex items-center gap-1.5">
+                    <Eye className="w-3.5 h-3.5" /> معاينة
+                  </span>
+                )}
                 <span className={`px-3 py-1 rounded-full text-xs font-bold border ${STATUS_LABELS[selectedOrder.status]?.color}`}>
                   {STATUS_LABELS[selectedOrder.status]?.label}
                 </span>
@@ -139,6 +144,17 @@ const AdminDashboard = () => {
                 <p className="text-gray-300 text-sm mt-1">{selectedOrder.phone}</p>
                 <p className="text-gray-400 text-sm mt-1">{selectedOrder.address} — {selectedOrder.city}</p>
               </div>
+
+              {/* ✅ تنبيه المعاينة */}
+              {selectedOrder.wants_inspection && (
+                <div className="bg-amber-400/5 border border-amber-400/20 rounded-xl p-4 flex items-center gap-3">
+                  <Eye className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold text-sm text-amber-400">العميل طلب معاينة المنتج قبل الدفع</p>
+                    <p className="text-xs text-gray-400 mt-0.5">تم إضافة {parseFloat(selectedOrder.inspection_fee || 0).toLocaleString()} EGP رسوم معاينة على الفاتورة</p>
+                  </div>
+                </div>
+              )}
 
               {/* المنتجات */}
               <div className="bg-white/5 rounded-xl p-4">
@@ -175,7 +191,11 @@ const AdminDashboard = () => {
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-400">سعر المنتجات</span>
                   <span className="font-semibold text-white">
-                    {(parseFloat(selectedOrder.total_amount) - parseFloat(selectedOrder.shipping_price || 0)).toLocaleString()} EGP
+                    {(
+                      parseFloat(selectedOrder.total_amount) -
+                      parseFloat(selectedOrder.shipping_price || 0) -
+                      parseFloat(selectedOrder.inspection_fee || 0)
+                    ).toLocaleString()} EGP
                   </span>
                 </div>
 
@@ -187,6 +207,17 @@ const AdminDashboard = () => {
                     {parseFloat(selectedOrder.shipping_price || 0).toLocaleString()} EGP
                   </span>
                 </div>
+
+                {selectedOrder.wants_inspection && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-400 flex items-center gap-1.5">
+                      <Eye className="w-3.5 h-3.5" /> رسوم المعاينة
+                    </span>
+                    <span className="font-semibold text-amber-400">
+                      {parseFloat(selectedOrder.inspection_fee || 0).toLocaleString()} EGP
+                    </span>
+                  </div>
+                )}
 
                 <div className="border-t border-white/10 pt-3 flex justify-between items-center">
                   <span className="font-bold text-white">الإجمالي</span>
@@ -351,7 +382,14 @@ const AdminDashboard = () => {
                       )}
                     </div>
                     <div>
-                      <p className="font-semibold text-sm">{order.full_name || 'عميل'}</p>
+                      <p className="font-semibold text-sm flex items-center gap-2">
+                        {order.full_name || 'عميل'}
+                        {order.wants_inspection && (
+                          <span className="flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-400/10 border border-amber-400/20 px-1.5 py-0.5 rounded-full">
+                            <Eye className="w-3 h-3" /> معاينة
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs text-gray-500">{order.phone} • #{order.id} • {order.city}</p>
                     </div>
                   </div>
