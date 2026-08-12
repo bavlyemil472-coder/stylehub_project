@@ -20,6 +20,9 @@ from .payments import get_auth_token, create_payment_order, get_payment_key
 
 logger = logging.getLogger(__name__)
 
+# ✅ رسوم المعاينة الثابتة (بتتحدد من السيرفر مش من الفرونت عشان الأمان)
+INSPECTION_FEE = 50
+
 
 class CreateOrderView(APIView):
     permission_classes = [AllowAny]
@@ -66,12 +69,18 @@ class CreateOrderView(APIView):
         payment_method = request.data.get('payment_method', 'cash')
         payment_screenshot = request.FILES.get('payment_screenshot')
 
+        # ✅ طلب المعاينة - بنقرأه من الفرونت بس السعر بيتحدد من السيرفر
+        wants_inspection_raw = request.data.get('wants_inspection', 'false')
+        wants_inspection = str(wants_inspection_raw).lower() in ['true', '1', 'yes']
+        inspection_fee = INSPECTION_FEE if wants_inspection else 0
+
         if not all([full_name, phone, address]):
             return Response({'error': 'يرجى إكمال بيانات الشحن (الاسم، الهاتف، العنوان).'}, status=status.HTTP_400_BAD_REQUEST)
 
         # ✅ جيب سعر الشحن من الـ ShippingRate
         shipping_rate = ShippingRate.objects.filter(city_name=city).first()
         from decimal import Decimal; shipping_price = Decimal(str(shipping_rate.price)) if shipping_rate else Decimal('0.00')
+        inspection_fee = Decimal(str(inspection_fee))
 
         order = Order.objects.create(
             user=user,
@@ -81,6 +90,8 @@ class CreateOrderView(APIView):
             city=city,
             payment_method=payment_method,
             shipping_price=shipping_price,  # ✅ حفظ سعر الشحن
+            wants_inspection=wants_inspection,  # ✅ حفظ طلب المعاينة
+            inspection_fee=inspection_fee,  # ✅ حفظ رسوم المعاينة
             total_amount=0,
             payment_status='unpaid' if payment_method == 'visa' else 'pending',
             payment_screenshot=payment_screenshot
@@ -115,8 +126,8 @@ class CreateOrderView(APIView):
             variant.stock -= quantity
             variant.save()
 
-        # ✅ الإجمالي = سعر المنتجات + الشحن
-        order.total_amount = total + shipping_price
+        # ✅ الإجمالي = سعر المنتجات + الشحن + رسوم المعاينة
+        order.total_amount = total + shipping_price + inspection_fee
         order.save()
 
         if user and cart:
