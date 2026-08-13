@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
 import { Lock, User, LogIn } from 'lucide-react'; 
 import api from '../services/api';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // ✅ هنرجع المستخدم لنفس الصفحة اللي كان فيها قبل ما يدخل على تسجيل الدخول
+  const redirectTo = location.state?.from || '/';
+
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -30,7 +34,7 @@ const Login = () => {
       toast.success("تم الدخول بواسطة جوجل بنجاح ✨");
       
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = redirectTo;
       }, 1000);
     } catch (error) {
       toast.dismiss(loadingToast);
@@ -56,7 +60,7 @@ const Login = () => {
       toast.success(`أهلاً بك مجدداً يا ${formData.username} ✨`);
 
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = redirectTo;
       }, 1000);
 
     } catch (error) {
