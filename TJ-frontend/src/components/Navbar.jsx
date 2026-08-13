@@ -28,8 +28,30 @@ const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showNav, setShowNav] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      // في أول الصفحة، النافبار يفضل ظاهر دايمًا
+      if (currentScrollY < 80) {
+        setShowNav(true);
+      } else if (currentScrollY > lastScrollY) {
+        // بينزل تحت -> اخفي
+        setShowNav(false);
+      } else {
+        // بيطلع فوق -> اظهر
+        setShowNav(true);
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   const checkStatusAndCart = async () => {
     const token = localStorage.getItem('access_token');
@@ -83,7 +105,7 @@ const Navbar = () => {
       {/* ✅ الشريط الإعلاني — بييجي نصه من الـ Django Admin */}
       <AnnouncementBar />
 
-      <nav className="bg-[#0a0a0a] text-white sticky top-0 z-[100] border-b border-white/5 backdrop-blur-md bg-opacity-90">
+      <nav className={`bg-[#0a0a0a] text-white sticky top-0 z-[100] border-b border-white/5 backdrop-blur-md bg-opacity-90 transition-transform duration-300 ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between h-20 items-center">
 
@@ -181,7 +203,7 @@ const Navbar = () => {
                     </button>
                   </div>
                 ) : (
-                  <Link to="/login" className="text-[10px] font-black uppercase tracking-widest bg-brand-gold text-brand-dark px-6 py-2.5 rounded-full hover:bg-white transition-all duration-500 shadow-lg shadow-brand-gold/10">
+                  <Link to="/login" state={{ from: location.pathname }} className="text-[10px] font-black uppercase tracking-widest bg-brand-gold text-brand-dark px-6 py-2.5 rounded-full hover:bg-white transition-all duration-500 shadow-lg shadow-brand-gold/10">
                     Sign In
                   </Link>
                 )}
@@ -269,7 +291,7 @@ const Navbar = () => {
                   </button>
                 </>
               ) : (
-                <Link to="/login" onClick={() => setIsOpen(false)} className="block w-full text-center bg-brand-gold text-brand-dark py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-brand-gold/10">
+                <Link to="/login" state={{ from: location.pathname }} onClick={() => setIsOpen(false)} className="block w-full text-center bg-brand-gold text-brand-dark py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-brand-gold/10">
                   Login to Account
                 </Link>
               )}
