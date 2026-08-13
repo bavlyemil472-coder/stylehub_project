@@ -13,6 +13,16 @@ const isProductSoldOut = (product) => {
     return false;
 };
 
+// ✅ بترتب المنتجات وتخلي اللي خلص يروح لتحت، من غير ما تلخبط ترتيب الباقي
+const sortWithSoldOutLast = (list) => {
+    return [...list].sort((a, b) => {
+        const aSoldOut = isProductSoldOut(a);
+        const bSoldOut = isProductSoldOut(b);
+        if (aSoldOut === bSoldOut) return 0;
+        return aSoldOut ? 1 : -1;
+    });
+};
+
 const Shop = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -41,7 +51,8 @@ const Shop = () => {
 
             try {
                 const res = await api.get(finalUrl);
-                setProducts(Array.isArray(res.data) ? res.data : res.data.results || []);
+                const fetched = Array.isArray(res.data) ? res.data : res.data.results || [];
+                setProducts(sortWithSoldOutLast(fetched));
 
                 if (category) {
                     const catRes = await api.get(`/subcategories/?category=${category}`);
