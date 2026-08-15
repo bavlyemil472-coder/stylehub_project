@@ -44,7 +44,7 @@ const Home = () => {
 
                     <div className="flex flex-col items-center md:items-start">
                         <div className="flex items-center gap-3 mb-2">
-                            <span className="text-brand-gold text-[9px] font-bold uppercase tracking-[0.4em]">Since 1994</span>
+                            <span className="text-brand-gold text-[9px] font-bold uppercase tracking-[0.4em]">Since 1996</span>
                         </div>
                         <h1 className="text-3xl md:text-5xl font-bold text-white leading-none mb-2">تري جولي <span className="text-brand-gold font-light text-xl md:text-2xl">— بيت العيلة</span></h1>
                         <p className="text-gray-500 text-[10px] uppercase tracking-[0.3em]">Premium Family Wear • Collections 2026</p>
