@@ -3,7 +3,7 @@ import api from "../services/api";
 import {
   DollarSign, ShoppingBag, Clock, Activity,
   ChevronLeft, Image as ImageIcon, Search,
-  RefreshCw, TrendingUp, Package, X, Truck, Eye
+  RefreshCw, TrendingUp, Package, X, Truck, Eye, Download
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatImageUrl } from "../utils/helpers";
@@ -162,7 +162,14 @@ const AdminDashboard = () => {
                 <div className="space-y-3">
                   {selectedOrder.items?.map((item, i) => (
                     <div key={i} className="flex items-center gap-3">
-                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-white/5 flex-shrink-0 border border-white/10">
+                      <a
+                        href={formatImageUrl(item.image)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download={`${item.product_name || 'product'}.jpg`}
+                        className="w-14 h-14 rounded-xl overflow-hidden bg-white/5 flex-shrink-0 border border-white/10 relative group cursor-pointer"
+                        title="فتح/تحميل صورة المنتج"
+                      >
                         {item.image ? (
                           <img src={formatImageUrl(item.image)} alt={item.product_name} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
                         ) : (
@@ -170,7 +177,12 @@ const AdminDashboard = () => {
                             <Package className="w-5 h-5 text-gray-600" />
                           </div>
                         )}
-                      </div>
+                        {item.image && (
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <Download className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                      </a>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{item.product_name}</p>
                         <p className="text-xs text-gray-400 mt-0.5">مقاس: {item.size} × {item.quantity}</p>
