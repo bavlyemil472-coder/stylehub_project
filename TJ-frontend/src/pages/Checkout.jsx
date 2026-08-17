@@ -322,7 +322,7 @@ const Checkout = () => {
                         {isSubmitting ? 'جاري المعالجة...' : 'تأكيد الطلب'}
                         {!isSubmitting && <CheckCircle2 className="w-4 h-4" />}
                     </button>
-                    <p className="lg:hidden text-xs text-gray-400 text-center -mt-3">
+                    <p className="lg:hidden text-sm font-bold text-brand-dark text-center -mt-3 leading-relaxed bg-amber-50 border border-amber-200 rounded-xl p-3">
                         بمجرد الضغط على "تأكيد الطلب"، يعتبر طلبك مؤكدًا وجاهزًا للشحن فورًا، من غير ما نحتاج نتصل بك للتأكيد.
                     </p>
                 </div>
@@ -401,7 +401,7 @@ const Checkout = () => {
                                 {isSubmitting ? 'جاري المعالجة...' : 'تأكيد الطلب'}
                                 {!isSubmitting && <CheckCircle2 className="w-4 h-4" />}
                             </button>
-                            <p className="text-xs text-gray-400 text-center mt-3 leading-relaxed">
+                            <p className="text-sm font-bold text-brand-dark text-center mt-3 leading-relaxed bg-amber-50 border border-amber-200 rounded-xl p-3">
                                 بمجرد الضغط على "تأكيد الطلب"، يعتبر طلبك مؤكدًا وجاهزًا للشحن فورًا، من غير ما نحتاج نتصل بك للتأكيد.
                             </p>
                             <p className="text-xs text-gray-400 text-center mt-2 flex items-center justify-center gap-1">
