@@ -13,6 +13,7 @@ const Checkout = () => {
     const [screenshot, setScreenshot] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [wantsInspection, setWantsInspection] = useState(false);
+    const [updatingItem, setUpdatingItem] = useState(null);
     const INSPECTION_FEE = 50;
 
     const [formData, setFormData] = useState({
@@ -23,18 +24,35 @@ const Checkout = () => {
         payment_method: 'cash'
     });
 
-    useEffect(() => {
-        api.get('/cart/')
+    const fetchCart = () => {
+        return api.get('/cart/')
             .then(res => setCart(res.data))
             .catch(() => {
                 toast.error("عذراً، السلة فارغة أو حدث خطأ في التحميل");
                 navigate('/shop');
             });
+    };
+
+    useEffect(() => {
+        fetchCart();
 
         api.get('/shipping-rates/')
             .then(res => setShippingRates(res.data))
             .catch(err => console.error("Error fetching shipping rates:", err));
     }, [navigate]);
+
+    const updateQuantity = async (itemId, newQuantity) => {
+        if (newQuantity < 1 || updatingItem) return;
+        try {
+            setUpdatingItem(itemId);
+            await api.put(`/cart/update/${itemId}/`, { quantity: newQuantity });
+            await fetchCart();
+        } catch (err) {
+            toast.error(err.response?.data?.error || "فشل في تحديث الكمية");
+        } finally {
+            setUpdatingItem(null);
+        }
+    };
 
     const handleCityChange = (cityName) => {
         const rate = shippingRates.find(r => r.city_name === cityName);
@@ -337,7 +355,7 @@ const Checkout = () => {
                         </div>
 
                         {/* المنتجات */}
-                        <div className="p-5 space-y-4 max-h-[320px] overflow-y-auto">
+                        <div className="p-5 space-y-4 max-h-[400px] overflow-y-auto">
                             {(cart.items || []).map((item) => (
                                 <div key={item.id} className="flex gap-3 items-start">
                                     <div className="relative flex-shrink-0">
@@ -348,13 +366,32 @@ const Checkout = () => {
                                                 className="w-full h-full object-cover"
                                             />
                                         </div>
-                                        <span className="absolute -top-1.5 -right-1.5 bg-brand-gold text-brand-dark w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black">
-                                            {item.quantity}
-                                        </span>
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-bold text-brand-dark leading-tight line-clamp-2">{item.product_name}</p>
                                         <p className="text-xs text-gray-400 mt-0.5">مقاس: {item.size}</p>
+                                        {/* ✅ زراير التحكم في الكمية */}
+                                        <div className="flex items-center border border-gray-200 rounded-lg w-fit mt-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                disabled={item.quantity <= 1 || updatingItem === item.id}
+                                                className="w-7 h-7 flex items-center justify-center text-brand-dark disabled:opacity-30 hover:bg-gray-50 rounded-r-lg text-base font-bold"
+                                            >
+                                                −
+                                            </button>
+                                            <span className="w-7 text-center text-xs font-bold text-brand-dark">
+                                                {updatingItem === item.id ? '…' : item.quantity}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                disabled={updatingItem === item.id}
+                                                className="w-7 h-7 flex items-center justify-center text-brand-dark disabled:opacity-30 hover:bg-gray-50 rounded-l-lg text-base font-bold"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
                                     </div>
                                     <p className="text-sm font-bold text-brand-dark flex-shrink-0">
                                         {(item.price * item.quantity).toFixed(0)} EGP
