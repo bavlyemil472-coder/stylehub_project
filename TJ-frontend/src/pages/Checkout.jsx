@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { ShoppingBag, Wallet, MapPin, User, Phone, ChevronRight, ShieldCheck, Camera, Truck } from 'lucide-react';
+import { ShoppingBag, Wallet, MapPin, User, Phone, ChevronRight, ShieldCheck, Camera, Truck, CheckCircle2 } from 'lucide-react';
 import { formatImageUrl } from '../utils/helpers';
 
 const Checkout = () => {
@@ -319,9 +319,12 @@ const Checkout = () => {
                         className={`lg:hidden w-full py-4 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all
                             ${isSubmitting ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-brand-dark text-white hover:bg-brand-gold hover:text-brand-dark'}`}
                     >
-                        {isSubmitting ? 'جاري المعالجة...' : 'إتمام الطلب'}
-                        {!isSubmitting && <ChevronRight className="w-4 h-4" />}
+                        {isSubmitting ? 'جاري المعالجة...' : 'تأكيد الطلب'}
+                        {!isSubmitting && <CheckCircle2 className="w-4 h-4" />}
                     </button>
+                    <p className="lg:hidden text-xs text-gray-400 text-center -mt-3">
+                        بمجرد الضغط على "تأكيد الطلب"، يعتبر طلبك مؤكدًا وجاهزًا للشحن فورًا، من غير ما نحتاج نتصل بك للتأكيد.
+                    </p>
                 </div>
 
                 {/* ===== ملخص الطلب ===== */}
@@ -395,10 +398,13 @@ const Checkout = () => {
                                 className={`w-full py-4 rounded-xl text-base font-bold flex items-center justify-center gap-2 transition-all
                                     ${isSubmitting ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-brand-dark text-white hover:bg-brand-gold hover:text-brand-dark'}`}
                             >
-                                {isSubmitting ? 'جاري المعالجة...' : 'إتمام الطلب الآن'}
-                                {!isSubmitting && <ChevronRight className="w-4 h-4" />}
+                                {isSubmitting ? 'جاري المعالجة...' : 'تأكيد الطلب'}
+                                {!isSubmitting && <CheckCircle2 className="w-4 h-4" />}
                             </button>
-                            <p className="text-xs text-gray-400 text-center mt-3 flex items-center justify-center gap-1">
+                            <p className="text-xs text-gray-400 text-center mt-3 leading-relaxed">
+                                بمجرد الضغط على "تأكيد الطلب"، يعتبر طلبك مؤكدًا وجاهزًا للشحن فورًا، من غير ما نحتاج نتصل بك للتأكيد.
+                            </p>
+                            <p className="text-xs text-gray-400 text-center mt-2 flex items-center justify-center gap-1">
                                 <ShieldCheck className="w-3 h-3" /> دفع آمن ومحمي
                             </p>
                         </div>
