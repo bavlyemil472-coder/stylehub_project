@@ -31,6 +31,25 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+
+# ✅ الجديد: نخلي الدومين بـ www ومن غيره يشتغلوا مع بعض بدون مشاكل كوكيز
+CSRF_TRUSTED_ORIGINS = [
+    "https://tresjolie-shop.com",
+    "https://www.tresjolie-shop.com",
+]
+
+# ✅ الجديد: نخلي الكوكيز (Session و CSRF) شغالة على الدومين الأساسي وwww مع بعض
+CSRF_COOKIE_DOMAIN = ".tresjolie-shop.com"
+SESSION_COOKIE_DOMAIN = ".tresjolie-shop.com"
+
+# ✅ الجديد: تأكيد إن الكوكيز بتتبعت بس عبر HTTPS (الموقع شغال بالكامل عليه)
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# ✅ الجديد: مهم جدًا لو السيرفر شغال ورا reverse proxy زي nginx
+# عشان Django يفهم صح إن الاتصال HTTPS فعلاً (مش يفتكره HTTP عادي)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://tresjolie-shop.com",
