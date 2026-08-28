@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import product, Category, Section, SubCategory, ProductVariant, ProductImage, Review, AnnouncementBar
 
-CLOUD_NAME = "dtlctyyas"
+CLOUD_NAME = settings.CLOUDINARY_STORAGE['CLOUD_NAME']
 
 
 def get_optimized_url(image_field, width=800):
