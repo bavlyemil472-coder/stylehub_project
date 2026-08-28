@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Order, OrderItem, ShippingRate
-
+from django.conf import settings
 CLOUD_NAME = settings.CLOUDINARY_STORAGE['CLOUD_NAME']
 
 
