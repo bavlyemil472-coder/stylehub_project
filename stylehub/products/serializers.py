@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.conf import settings
 from .models import product, Category, Section, SubCategory, ProductVariant, ProductImage, Review, AnnouncementBar
 
 CLOUD_NAME = settings.CLOUDINARY_STORAGE['CLOUD_NAME']
