@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Cart, CartItem
 from products.models import product, ProductImage, ProductVariant
+from django.conf import settings
 
 CLOUD_NAME = settings.CLOUDINARY_STORAGE['CLOUD_NAME']
 
